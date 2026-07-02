@@ -42,8 +42,8 @@ import com.mapconductor.compose.marker.LocalMarkerCollector
 import com.mapconductor.compose.polygon.LocalPolygonCollector
 import com.mapconductor.compose.polyline.LocalPolylineCollector
 import com.mapconductor.compose.raster.LocalRasterLayerCollector
+import com.mapconductor.core.OnMapLoadedHandler
 import com.mapconductor.core.ResourceProvider
-import com.mapconductor.core.UnimplementedInitStateException
 import com.mapconductor.core.circle.CircleCapableInterface
 import com.mapconductor.core.controller.MapViewControllerInterface
 import com.mapconductor.core.groundimage.GroundImageCapableInterface
@@ -56,11 +56,12 @@ import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapServiceRegistry
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
-import com.mapconductor.core.map.OnMapLoadedHandler
 import com.mapconductor.core.marker.MarkerCapableInterface
 import com.mapconductor.core.polygon.PolygonCapableInterface
 import com.mapconductor.core.polyline.PolylineCapableInterface
 import com.mapconductor.core.raster.RasterLayerCapableInterface
+import com.mapconductor.error.UnimplementedInitStateException
+import kotlin.collections.isNotEmpty
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup

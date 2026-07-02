@@ -33,36 +33,35 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.mapconductor.core.CollectAndRenderOverlays
-import com.mapconductor.core.MapViewScope
+import com.mapconductor.compose.CollectAndRenderOverlays
+import com.mapconductor.compose.MapViewScope
 import com.mapconductor.core.ResourceProvider
 import com.mapconductor.core.circle.CircleCapableInterface
-import com.mapconductor.core.circle.LocalCircleCollector
+import com.mapconductor.compose.circle.LocalCircleCollector
 import com.mapconductor.core.controller.MapViewControllerInterface
-import com.mapconductor.core.features.GeoPoint
 import com.mapconductor.core.groundimage.GroundImageCapableInterface
-import com.mapconductor.core.groundimage.LocalGroundImageCollector
+import com.mapconductor.compose.groundimage.LocalGroundImageCollector
 import com.mapconductor.core.info.InfoBubbleOverlay
-import com.mapconductor.core.info.LocalInfoBubbleCollector
-import com.mapconductor.core.marker.LocalMarkerCollector
+import com.mapconductor.compose.info.LocalInfoBubbleCollector
+import com.mapconductor.compose.map.LocalMapOverlayRegistry
+import com.mapconductor.compose.map.LocalMapViewController
+import com.mapconductor.compose.marker.LocalMarkerCollector
 import com.mapconductor.core.marker.MarkerCapableInterface
-import com.mapconductor.core.polygon.LocalPolygonCollector
+import com.mapconductor.compose.polygon.LocalPolygonCollector
 import com.mapconductor.core.polygon.PolygonCapableInterface
-import com.mapconductor.core.polyline.LocalPolylineCollector
+import com.mapconductor.compose.polyline.LocalPolylineCollector
 import com.mapconductor.core.polyline.PolylineCapableInterface
-import com.mapconductor.core.raster.LocalRasterLayerCollector
+import com.mapconductor.compose.raster.LocalRasterLayerCollector
+import com.mapconductor.core.OnMapLoadedHandler
 import com.mapconductor.core.raster.RasterLayerCapableInterface
+import com.mapconductor.error.UnimplementedInitStateException
+import kotlin.collections.isNotEmpty
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-
-typealias OnMapLoadedHandler = (MapViewStateInterface<*>) -> Unit
-typealias OnMapInitializedHandler = () -> Unit
-typealias OnMapEventHandler = (GeoPoint) -> Unit
-typealias OnCameraMoveHandler = (MapCameraPosition) -> Unit
 
 @Composable
 fun <
