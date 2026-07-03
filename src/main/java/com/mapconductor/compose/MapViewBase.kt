@@ -39,6 +39,7 @@ import com.mapconductor.compose.circle.LocalCircleCollector
 import com.mapconductor.compose.groundimage.LocalGroundImageCollector
 import com.mapconductor.compose.info.LocalInfoBubbleCollector
 import com.mapconductor.compose.marker.LocalMarkerCollector
+import com.mapconductor.compose.marker.MarkerAnimationOverlayLayer
 import com.mapconductor.compose.polygon.LocalPolygonCollector
 import com.mapconductor.compose.polyline.LocalPolylineCollector
 import com.mapconductor.compose.raster.LocalRasterLayerCollector
@@ -68,6 +69,7 @@ import android.view.ViewGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
 @Composable
 fun <
@@ -103,6 +105,7 @@ fun <
     val holderRef = remember { Ref<SpecificHolder>() }
     var initState by remember { mutableStateOf<InitState>(InitState.NotStarted) }
     val bubbles by scope.bubbleFlow.collectAsState()
+    val markerAnimations by scope.markerAnimationFlow.collectAsState()
     val cameraTick = remember { mutableIntStateOf(0) }
     val controller = controllerRef.value
 
@@ -157,8 +160,13 @@ fun <
                         }
                     }
                 }
+                (controller as? MarkerCapableInterface)?.setMarkerAnimationOverlayHost { entry ->
+                    scope.markerAnimationFlow.update { it + (entry.id to entry) }
+                }
 
                 onDispose {
+                    (controller as? MarkerCapableInterface)?.setMarkerAnimationOverlayHost(null)
+                    scope.markerAnimationFlow.value = emptyMap()
                     scope.groundImageCollector.setUpdateHandler(null)
                     scope.rasterLayerCollector.setUpdateHandler(null)
                     scope.polygonCollector.setUpdateHandler(null)
@@ -249,6 +257,29 @@ fun <
                     ) {
                         // 子（Marker など）の収集＆描画
                         with(scope) { content?.invoke(this) }
+                    }
+
+                    // マーカーアニメーションレイヤー：マーカー画像をスクリーン座標で
+                    // アニメーションさせる（3D/回転/グローブ表示でも画面上部から落ちる）。
+                    // InfoBubble より下に重ねる。
+                    if (markerAnimations.isNotEmpty()) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clipToBounds(),
+                        ) {
+                            MarkerAnimationOverlayLayer(
+                                entries = markerAnimations.values,
+                                resolveScreenOffset = { position ->
+                                    holderRef.value?.toScreenOffset(position)
+                                },
+                                onFinished = { entry ->
+                                    scope.markerAnimationFlow.update { it - entry.id }
+                                    entry.onFinished()
+                                },
+                            )
+                        }
                     }
 
                     // InfoBubble など、Map の座標→スクリーン座標変換が必要なもの

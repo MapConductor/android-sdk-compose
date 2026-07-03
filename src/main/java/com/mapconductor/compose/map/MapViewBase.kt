@@ -331,7 +331,13 @@ fun <
             initState = InitState.MapCreating
         }
     }
+    DisposableEffect(Unit) {
+        // Setup logic when the composable enters the screen
 
+        onDispose {
+            controllerRef
+        }
+    }
     customDisposableEffect?.invoke(initState, holderRef)
 }
 

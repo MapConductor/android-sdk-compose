@@ -14,6 +14,7 @@ import com.mapconductor.core.groundimage.GroundImageOverlay
 import com.mapconductor.core.groundimage.GroundImageState
 import com.mapconductor.core.map.MapOverlayInterface
 import com.mapconductor.core.map.MapOverlayRegistry
+import com.mapconductor.core.marker.MarkerAnimationOverlayEntry
 import com.mapconductor.core.marker.MarkerFingerPrint
 import com.mapconductor.core.marker.MarkerOverlay
 import com.mapconductor.core.marker.MarkerState
@@ -33,33 +34,36 @@ import kotlinx.coroutines.flow.MutableStateFlow
 open class MapViewScope {
     val markerCollector =
         ChildCollectorImpl<MarkerState, MarkerFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val bubbleFlow = MutableStateFlow<MutableMap<String, InfoBubbleEntry>>(mutableMapOf())
+
+    /** Active screen-space marker animations, keyed by marker id. */
+    val markerAnimationFlow = MutableStateFlow<Map<String, MarkerAnimationOverlayEntry>>(emptyMap())
     val polylineCollector =
         ChildCollectorImpl<PolylineState, PolylineFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val circleCollector =
         ChildCollectorImpl<CircleState, CircleFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val polygonCollector =
         ChildCollectorImpl<PolygonState, PolygonFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val groundImageCollector =
         ChildCollectorImpl<GroundImageState, GroundImageFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val rasterLayerCollector =
         ChildCollectorImpl<RasterLayerState, RasterLayerFingerPrint>(
-            asFlow = { it.asFlow() },
+            fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
 
