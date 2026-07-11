@@ -1,4 +1,4 @@
-package com.mapconductor.core.map
+package com.mapconductor.compose.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -35,40 +35,52 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.mapconductor.compose.CollectAndRenderOverlays
 import com.mapconductor.compose.MapViewScope
-import com.mapconductor.core.ResourceProvider
-import com.mapconductor.core.circle.CircleCapableInterface
 import com.mapconductor.compose.circle.LocalCircleCollector
-import com.mapconductor.core.controller.MapViewControllerInterface
-import com.mapconductor.core.groundimage.GroundImageCapableInterface
 import com.mapconductor.compose.groundimage.LocalGroundImageCollector
-import com.mapconductor.core.info.InfoBubbleOverlay
 import com.mapconductor.compose.info.LocalInfoBubbleCollector
-import com.mapconductor.compose.map.LocalMapOverlayRegistry
-import com.mapconductor.compose.map.LocalMapViewController
 import com.mapconductor.compose.marker.LocalMarkerCollector
-import com.mapconductor.core.marker.MarkerCapableInterface
+import com.mapconductor.compose.marker.MarkerAnimationOverlayLayer
 import com.mapconductor.compose.polygon.LocalPolygonCollector
-import com.mapconductor.core.polygon.PolygonCapableInterface
 import com.mapconductor.compose.polyline.LocalPolylineCollector
-import com.mapconductor.core.polyline.PolylineCapableInterface
 import com.mapconductor.compose.raster.LocalRasterLayerCollector
 import com.mapconductor.core.OnMapLoadedHandler
+import com.mapconductor.core.ResourceProvider
+import com.mapconductor.core.circle.CircleCapableInterface
+import com.mapconductor.core.controller.BaseMapViewController
+import com.mapconductor.core.controller.MapViewControllerInterface
+import com.mapconductor.core.groundimage.GroundImageCapableInterface
+import com.mapconductor.core.info.InfoBubbleOverlay
+import com.mapconductor.core.map.EmptyMapServiceRegistry
+import com.mapconductor.core.map.InitState
+import com.mapconductor.core.map.LocalMapOverlayRegistry
+import com.mapconductor.core.map.LocalMapServiceRegistry
+import com.mapconductor.core.map.LocalMapViewController
+import com.mapconductor.core.map.MapCameraPosition
+import com.mapconductor.core.map.MapCameraPositionInterface
+import com.mapconductor.core.map.MapOverlayRegistry
+import com.mapconductor.core.map.MapServiceRegistry
+import com.mapconductor.core.map.MapViewHolderInterface
+import com.mapconductor.core.map.MapViewStateInterface
+import com.mapconductor.core.marker.AbstractMarkerController
+import com.mapconductor.core.marker.MarkerCapableInterface
+import com.mapconductor.core.polygon.PolygonCapableInterface
+import com.mapconductor.core.polyline.PolylineCapableInterface
 import com.mapconductor.core.raster.RasterLayerCapableInterface
 import com.mapconductor.error.UnimplementedInitStateException
-import kotlin.collections.isNotEmpty
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
 @Composable
 fun <
     SpecificState : MapViewStateInterface<*>,
     // Replace Any with a base MapViewControllerInterface if you have one
     // Generic type for the actual Android Map View (e.g., com.google.android.gms.maps.MapView)
-    SpecificController : MapViewControllerInterface,
+    SpecificController : BaseMapViewController,
     ActualMapView : View,
     // Generic type for the actual Map SDK object (e.g., GoogleMap, HereMapSDK.MapController)
     ActualMap : Any,
@@ -97,6 +109,7 @@ fun <
     val holderRef = remember { Ref<SpecificHolder>() }
     var initState by remember { mutableStateOf<InitState>(InitState.NotStarted) }
     val bubbles by scope.bubbleFlow.collectAsState()
+    val markerAnimations by scope.markerAnimationFlow.collectAsState()
     val cameraTick = remember { mutableIntStateOf(0) }
     val controller = controllerRef.value
 
@@ -151,8 +164,13 @@ fun <
                         }
                     }
                 }
+                (controller as? MarkerCapableInterface)?.setMarkerAnimationOverlayHost { entry ->
+                    scope.markerAnimationFlow.update { it + (entry.id to entry) }
+                }
 
                 onDispose {
+                    (controller as? MarkerCapableInterface)?.setMarkerAnimationOverlayHost(null)
+                    scope.markerAnimationFlow.value = emptyMap()
                     scope.groundImageCollector.setUpdateHandler(null)
                     scope.rasterLayerCollector.setUpdateHandler(null)
                     scope.polygonCollector.setUpdateHandler(null)
@@ -178,7 +196,9 @@ fun <
             .collect { cameraTick.intValue = (cameraTick.intValue + 1) % 2 } // 変化時のみ
     }
 
-    SubcomposeLayout(modifier = modifier.fillMaxSize().clipToBounds().background(Color.LightGray)) { constraints ->
+    SubcomposeLayout(
+        modifier = modifier.fillMaxSize().clipToBounds().background(Color.LightGray)
+    ) { constraints ->
         // 2. Map フェーズ：先に Map の AndroidView をレイアウト
         val mapPlaceables =
             subcompose("map") {
@@ -199,15 +219,17 @@ fun <
                         }
                         BasicMessage("Loading.")
                     }
+
                     InitState.MapLoaded,
                     InitState.MapViewCreated,
                     InitState.MapCreating,
                     InitState.MapCreated,
-                    -> {
+                        -> {
                         mapViewRef.value?.also {
                             AndroidView(factory = { _ -> it })
                         }
                     }
+
                     else -> throw UnimplementedInitStateException()
                 }
             }.map { it.measure(constraints) }
@@ -224,7 +246,6 @@ fun <
             if (canOverlay) {
                 subcompose("slotid") {
                     @Suppress("UNUSED_VARIABLE") // KtLint: backing property rule workaround
-                    val tick = cameraTick.intValue
                     val localController = controllerRef.value ?: return@subcompose
 
                     // 子コンポーネントを収集する
@@ -243,6 +264,29 @@ fun <
                     ) {
                         // 子（Marker など）の収集＆描画
                         with(scope) { content?.invoke(this) }
+                    }
+
+                    // マーカーアニメーションレイヤー：マーカー画像をスクリーン座標で
+                    // アニメーションさせる（3D/回転/グローブ表示でも画面上部から落ちる）。
+                    // InfoBubble より下に重ねる。
+                    if (markerAnimations.isNotEmpty()) {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clipToBounds(),
+                        ) {
+                            MarkerAnimationOverlayLayer(
+                                entries = markerAnimations.values,
+                                resolveScreenOffset = { position ->
+                                    holderRef.value?.toScreenOffset(position)
+                                },
+                                onFinished = { entry ->
+                                    scope.markerAnimationFlow.update { it - entry.id }
+                                    entry.onFinished()
+                                },
+                            )
+                        }
                     }
 
                     // InfoBubble など、Map の座標→スクリーン座標変換が必要なもの
@@ -266,7 +310,8 @@ fun <
                                         val iconOffset: Offset
                                         val infoAnchorOffset: Offset
                                         if (icon != null) {
-                                            val px = ResourceProvider.dpToPx(icon.iconSize.value) * icon.scale
+                                            val px =
+                                                ResourceProvider.dpToPx(icon.iconSize.value) * icon.scale
                                             resolvedIconSize = Size(px.toFloat(), px.toFloat())
                                             iconOffset = icon.anchor
                                             infoAnchorOffset = icon.infoAnchor
@@ -335,7 +380,7 @@ fun <
         // Setup logic when the composable enters the screen
 
         onDispose {
-            controllerRef
+            controllerRef.value?.destroy()
         }
     }
     customDisposableEffect?.invoke(initState, holderRef)
