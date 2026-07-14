@@ -1,5 +1,7 @@
 package com.mapconductor.compose.marker
 
+import android.os.SystemClock
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,12 +43,19 @@ fun MapViewScope.Markers(states: List<MarkerState>) {
     val prevIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
 
     LaunchedEffect(states) {
+        val startedAt = SystemClock.elapsedRealtime()
+        markerTrace("collector effect start count=${states.size}")
         // For very large marker sets, avoid per-marker SharedFlow emits which can backpressure and
         // block rendering; instead publish the whole map in one StateFlow update.
         withContext(Dispatchers.Default) {
             val nextIds = states.asSequence().map { it.id }.toSet()
+            markerTrace("collector ids created count=${nextIds.size}")
             prevIdsState.value = nextIds
             collector.flow.value = states.associateBy { it.id }.toMutableMap()
+            markerTrace(
+                "collector flow assigned count=${states.size} " +
+                    "elapsedMs=${SystemClock.elapsedRealtime() - startedAt}",
+            )
         }
     }
 
@@ -57,6 +66,14 @@ fun MapViewScope.Markers(states: List<MarkerState>) {
             prevIdsState.value = emptySet()
         }
     }
+}
+
+private fun markerTrace(message: String) {
+    Log.d(
+        "MCMarkerTrace",
+        "[ComposeSDK][t=${SystemClock.elapsedRealtime()}]" +
+            "[thread=${Thread.currentThread().name}] $message",
+    )
 }
 
 @Composable
