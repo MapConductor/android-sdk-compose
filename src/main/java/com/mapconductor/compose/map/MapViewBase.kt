@@ -57,10 +57,12 @@ import com.mapconductor.core.map.LocalMapServiceRegistry
 import com.mapconductor.core.map.LocalMapViewController
 import com.mapconductor.core.map.MapCameraPosition
 import com.mapconductor.core.map.MapCameraPositionInterface
+import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapServiceRegistry
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
+import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.AbstractMarkerController
 import com.mapconductor.core.marker.MarkerCapableInterface
 import com.mapconductor.core.polygon.PolygonCapableInterface
@@ -110,6 +112,7 @@ fun <
     var initState by remember { mutableStateOf<InitState>(InitState.NotStarted) }
     val bubbles by scope.bubbleFlow.collectAsState()
     val markerAnimations by scope.markerAnimationFlow.collectAsState()
+    val rasterLayers by scope.rasterLayerCollector.flow.collectAsState()
     val cameraTick = remember { mutableIntStateOf(0) }
     val controller = controllerRef.value
 
@@ -287,6 +290,20 @@ fun <
                                 },
                             )
                         }
+                    }
+
+                    val mapDesignRules =
+                        (state.mapDesignType as? MapDesignTypeInterface<*>)
+                            ?.attributionRules
+                            .orEmpty()
+                    val attributions =
+                        resolveMapAttributions(
+                            designRules = mapDesignRules,
+                            rasterLayers = rasterLayers.values,
+                            camera = cameraState.value ?: state.cameraPosition,
+                        )
+                    if (attributions.isNotEmpty()) {
+                        MapAttributionOverlay(attributions)
                     }
 
                     // InfoBubble など、Map の座標→スクリーン座標変換が必要なもの
