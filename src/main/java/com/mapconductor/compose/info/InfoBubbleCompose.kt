@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mapconductor.compose.MapViewScope
 import com.mapconductor.core.features.GeoPoint
+import com.mapconductor.core.marker.DefaultMarkerIcon
 import com.mapconductor.core.marker.MarkerState
 import java.util.UUID
 
@@ -51,7 +52,9 @@ fun MapViewScope.InfoBubble(
         InfoBubbleEntry(
             id = marker.id,
             positionProvider = { marker.position },
-            icon = marker.icon,
+            // Marker本体もicon未指定時はDefaultMarkerIconを描画するため、InfoBubbleの
+            // 接続位置計算にも同じアイコン寸法・anchor・infoAnchorを使用する。
+            icon = marker.icon ?: DefaultMarkerIcon(),
             content = wrapped,
         )
 
@@ -141,7 +144,7 @@ fun MapViewScope.InfoBubbleCustom(
         InfoBubbleEntry(
             id = marker.id,
             positionProvider = { marker.position },
-            icon = marker.icon,
+            icon = marker.icon ?: DefaultMarkerIcon(),
             tailOffset = tailOffset,
             content = content,
         )

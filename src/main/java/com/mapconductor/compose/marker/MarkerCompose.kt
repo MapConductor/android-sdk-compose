@@ -15,6 +15,7 @@ import com.mapconductor.core.marker.MarkerState
 import com.mapconductor.core.marker.OnMarkerEventHandler
 import java.io.Serializable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -49,9 +50,19 @@ fun MapViewScope.Markers(states: List<MarkerState>) {
         // block rendering; instead publish the whole map in one StateFlow update.
         withContext(Dispatchers.Default) {
             val nextIds = states.asSequence().map { it.id }.toSet()
+            val removedIds = prevIdsState.value - nextIds
             markerTrace("collector ids created count=${nextIds.size}")
             prevIdsState.value = nextIds
-            collector.flow.value = states.associateBy { it.id }.toMutableMap()
+            // Merge only the ids this Markers() owns into the shared collector so
+            // several Markers()/Marker() can share one map without clobbering each
+            // other. Assigning the whole map (a full replace) dropped everyone
+            // else's markers, so the last Markers() to run won and erased the rest.
+            collector.flow.update { current ->
+                val next = current.toMutableMap()
+                for (id in removedIds) next.remove(id)
+                for (state in states) next[state.id] = state
+                next
+            }
             markerTrace(
                 "collector flow assigned count=${states.size} " +
                     "elapsedMs=${SystemClock.elapsedRealtime() - startedAt}",
@@ -61,8 +72,16 @@ fun MapViewScope.Markers(states: List<MarkerState>) {
 
     DisposableEffect(Unit) {
         onDispose {
-            // Clear all markers on dispose in one shot.
-            collector.flow.value = mutableMapOf()
+            // Remove only the markers this Markers() owns on dispose, not the
+            // whole collection.
+            val ownIds = prevIdsState.value
+            if (ownIds.isNotEmpty()) {
+                collector.flow.update { current ->
+                    val next = current.toMutableMap()
+                    for (id in ownIds) next.remove(id)
+                    next
+                }
+            }
             prevIdsState.value = emptySet()
         }
     }

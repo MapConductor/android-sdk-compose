@@ -94,7 +94,7 @@ fun <
     state: SpecificState,
     cameraState: MutableState<MapCameraPositionInterface?>,
     modifier: Modifier = Modifier,
-    viewProvider: () -> ActualMapView, // Function to get the Android View from ViewHolder
+    viewProvider: @Composable () -> ActualMapView, // Function to get the Android View from ViewHolder
     scope: SpecificScope,
     registry: MapOverlayRegistry, // Replace with your actual registry type from scope.buildRegistry()
     serviceRegistry: MapServiceRegistry = EmptyMapServiceRegistry,
