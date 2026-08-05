@@ -393,6 +393,11 @@ fun <
             initState = InitState.MapCreating
         }
     }
+    // Gesture flags are pushed from one place for every provider: re-run whenever
+    // the app flips a flag, and once more when the controller first appears.
+    LaunchedEffect(state.uiSettings, initState) {
+        controllerRef.value?.applyUISettings(state.uiSettings)
+    }
     DisposableEffect(Unit) {
         // Setup logic when the composable enters the screen
 
