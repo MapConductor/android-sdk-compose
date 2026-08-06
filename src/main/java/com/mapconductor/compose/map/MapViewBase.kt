@@ -50,7 +50,6 @@ import com.mapconductor.core.controller.BaseMapViewController
 import com.mapconductor.core.controller.MapViewControllerInterface
 import com.mapconductor.core.groundimage.GroundImageCapableInterface
 import com.mapconductor.core.info.InfoBubbleOverlay
-import com.mapconductor.core.map.EmptyMapServiceRegistry
 import com.mapconductor.core.map.InitState
 import com.mapconductor.core.map.LocalMapOverlayRegistry
 import com.mapconductor.core.map.LocalMapServiceRegistry
@@ -59,12 +58,12 @@ import com.mapconductor.core.map.MapCameraPosition
 import com.mapconductor.core.map.MapCameraPositionInterface
 import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
-import com.mapconductor.core.map.MapServiceRegistry
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.AbstractMarkerController
 import com.mapconductor.core.marker.MarkerCapableInterface
+import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
 import com.mapconductor.core.polyline.PolylineCapableInterface
 import com.mapconductor.core.raster.RasterLayerCapableInterface
@@ -97,7 +96,6 @@ fun <
     viewProvider: @Composable () -> ActualMapView, // Function to get the Android View from ViewHolder
     scope: SpecificScope,
     registry: MapOverlayRegistry, // Replace with your actual registry type from scope.buildRegistry()
-    serviceRegistry: MapServiceRegistry = EmptyMapServiceRegistry,
     sdkInitialize: suspend () -> Boolean = { true },
     holderProvider: suspend (mapView: ActualMapView) -> SpecificHolder,
     controllerProvider: suspend (holder: SpecificHolder) -> SpecificController,
@@ -115,6 +113,16 @@ fun <
     val rasterLayers by scope.rasterLayerCollector.flow.collectAsState()
     val cameraTick = remember { mutableIntStateOf(0) }
     val controller = controllerRef.value
+
+    // レジストリは state のものなので composable より長生きする（アプリが hoist する）。
+    // ビューが消えたら、死んだコントローラを掴んだままの capability を取り下げる。
+    // react の `useMarkerRenderingSupport` のクリーンアップと同じ位置づけで、
+    // `clear()` ではなく `remove()` なのは他の capability を巻き添えにしないため。
+    // 登録側は各プロバイダ（コントローラ生成時）。content の合成より前に登録される必要があり、
+    // `MarkerClusterGroup` は登録が無ければその場で return するため、ここで put はしない。
+    DisposableEffect(state) {
+        onDispose { state.serviceRegistry.remove(MarkerRenderingSupportKey) }
+    }
 
     controller?.also {
         controller.setMapInitializedListener {
@@ -255,7 +263,7 @@ fun <
                     // **ここで初めて CompositionLocalProvider を差し込む**
                     CompositionLocalProvider(
                         LocalMapOverlayRegistry provides registry,
-                        LocalMapServiceRegistry provides serviceRegistry,
+                        LocalMapServiceRegistry provides state.serviceRegistry,
                         LocalMapViewController provides localController,
                         LocalMarkerCollector provides scope.markerCollector,
                         LocalInfoBubbleCollector provides scope.bubbleFlow,

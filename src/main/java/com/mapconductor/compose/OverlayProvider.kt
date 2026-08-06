@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.mapconductor.compose.info.InfoBubbleEntry
-import com.mapconductor.core.ChildCollectorImpl
+import com.mapconductor.core.OverlayCollector
 import com.mapconductor.core.circle.CircleFingerPrint
 import com.mapconductor.core.circle.CircleOverlay
 import com.mapconductor.core.circle.CircleState
@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 open class MapViewScope {
     val markerCollector =
-        ChildCollectorImpl<MarkerState, MarkerFingerPrint>(
+        OverlayCollector<MarkerState, MarkerFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
@@ -42,27 +42,27 @@ open class MapViewScope {
     /** Active screen-space marker animations, keyed by marker id. */
     val markerAnimationFlow = MutableStateFlow<Map<String, MarkerAnimationOverlayEntry>>(emptyMap())
     val polylineCollector =
-        ChildCollectorImpl<PolylineState, PolylineFingerPrint>(
+        OverlayCollector<PolylineState, PolylineFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val circleCollector =
-        ChildCollectorImpl<CircleState, CircleFingerPrint>(
+        OverlayCollector<CircleState, CircleFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val polygonCollector =
-        ChildCollectorImpl<PolygonState, PolygonFingerPrint>(
+        OverlayCollector<PolygonState, PolygonFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val groundImageCollector =
-        ChildCollectorImpl<GroundImageState, GroundImageFingerPrint>(
+        OverlayCollector<GroundImageState, GroundImageFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val rasterLayerCollector =
-        ChildCollectorImpl<RasterLayerState, RasterLayerFingerPrint>(
+        OverlayCollector<RasterLayerState, RasterLayerFingerPrint>(
             fingerPrintOf = { it.fingerPrint() },
             updateDebounce = Settings.Default.composeEventDebounce,
         )

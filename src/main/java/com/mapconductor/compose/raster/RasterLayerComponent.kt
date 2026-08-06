@@ -27,7 +27,7 @@ fun MapViewScope.RasterLayer(
     opacity: Float = 1.0f,
     visible: Boolean = true,
     zIndex: Int = 0,
-    userAgent: String = "MapConductor/RasterLayerAgent(https://mapconductor.com)",
+    userAgent: String = RasterLayerState.DEFAULT_USER_AGENT,
     id: String? = null,
     extraHeaders: Map<String, String>? = null,
 ) {
