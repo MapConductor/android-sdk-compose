@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui.unit)
 
-
     // Coroutines for Semaphore and withPermit
     implementation(libs.kotlinx.coroutines.android)
 

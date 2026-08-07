@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
@@ -17,7 +18,6 @@ import androidx.compose.ui.unit.Dp
 import com.mapconductor.core.features.GeoPointInterface
 import com.mapconductor.core.marker.MarkerAnimation
 import com.mapconductor.core.marker.MarkerAnimationOverlayEntry
-import androidx.compose.foundation.layout.size
 import android.view.animation.BounceInterpolator
 import android.view.animation.LinearInterpolator
 

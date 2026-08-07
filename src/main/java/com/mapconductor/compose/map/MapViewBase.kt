@@ -47,7 +47,6 @@ import com.mapconductor.core.OnMapLoadedHandler
 import com.mapconductor.core.ResourceProvider
 import com.mapconductor.core.circle.CircleCapableInterface
 import com.mapconductor.core.controller.BaseMapViewController
-import com.mapconductor.core.controller.MapViewControllerInterface
 import com.mapconductor.core.groundimage.GroundImageCapableInterface
 import com.mapconductor.core.info.InfoBubbleOverlay
 import com.mapconductor.core.map.InitState
@@ -61,7 +60,6 @@ import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.resolveMapAttributions
-import com.mapconductor.core.marker.AbstractMarkerController
 import com.mapconductor.core.marker.MarkerCapableInterface
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
@@ -208,7 +206,7 @@ fun <
     }
 
     SubcomposeLayout(
-        modifier = modifier.fillMaxSize().clipToBounds().background(Color.LightGray)
+        modifier = modifier.fillMaxSize().clipToBounds().background(Color.LightGray),
     ) { constraints ->
         // 2. Map フェーズ：先に Map の AndroidView をレイアウト
         val mapPlaceables =
@@ -235,7 +233,7 @@ fun <
                     InitState.MapViewCreated,
                     InitState.MapCreating,
                     InitState.MapCreated,
-                        -> {
+                    -> {
                         mapViewRef.value?.also {
                             AndroidView(factory = { _ -> it })
                         }
