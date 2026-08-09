@@ -1,0 +1,103 @@
+public class com.mapconductor.compose.MapViewScope {
+  public com.mapconductor.compose.MapViewScope();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.marker.MarkerState, com.mapconductor.core.marker.MarkerFingerPrint> getMarkerCollector();
+  public final kotlinx.coroutines.flow.MutableStateFlow<java.util.Map<java.lang.String, com.mapconductor.compose.info.InfoBubbleEntry>> getBubbleFlow();
+  public final kotlinx.coroutines.flow.MutableStateFlow<java.util.Map<java.lang.String, com.mapconductor.core.marker.MarkerAnimationOverlayEntry>> getMarkerAnimationFlow();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.polyline.PolylineState, com.mapconductor.core.polyline.PolylineFingerPrint> getPolylineCollector();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.circle.CircleState, com.mapconductor.core.circle.CircleFingerPrint> getCircleCollector();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.polygon.PolygonState, com.mapconductor.core.polygon.PolygonFingerPrint> getPolygonCollector();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.groundimage.GroundImageState, com.mapconductor.core.groundimage.GroundImageFingerPrint> getGroundImageCollector();
+  public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.raster.RasterLayerState, com.mapconductor.core.raster.RasterLayerFingerPrint> getRasterLayerCollector();
+  public final com.mapconductor.core.map.MapOverlayRegistry buildRegistry();
+}
+public final class com.mapconductor.compose.OverlayProviderKt {
+  public static final void CollectAndRenderOverlays(com.mapconductor.core.map.MapOverlayRegistry, com.mapconductor.core.controller.MapViewControllerInterface, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.circle.CircleComposeKt {
+  public static final void Circle(com.mapconductor.compose.MapViewScope, com.mapconductor.core.circle.CircleState, androidx.compose.runtime.Composer, int);
+  public static final void Circle-6pqZqJ8(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPointInterface, double, java.lang.String, boolean, boolean, long, float, long, java.lang.Integer, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.circle.CircleEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
+}
+public final class com.mapconductor.compose.circle.LocalCircleCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.circle.CircleState>> getLocalCircleCollector();
+}
+public final class com.mapconductor.compose.groundimage.GroundImageComponentKt {
+  public static final void GroundImage(com.mapconductor.compose.MapViewScope, com.mapconductor.core.groundimage.GroundImageState, androidx.compose.runtime.Composer, int);
+  public static final void GroundImage(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, android.graphics.drawable.Drawable, float, int, java.lang.String, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.groundimage.GroundImageEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+}
+public final class com.mapconductor.compose.groundimage.LocalGroundImageCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.groundimage.GroundImageState>> getLocalGroundImageCollector();
+}
+public final class com.mapconductor.compose.info.DrawInfoBubbleKt {
+  public static final void DrawInfoBubble-6AFwczQ(androidx.compose.ui.Modifier, long, long, float, float, float, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.info.InfoBubbleComposeKt {
+  public static final void InfoBubble-RfBtt3o(com.mapconductor.compose.MapViewScope, com.mapconductor.core.marker.MarkerState, long, long, float, float, float, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+  public static final void InfoBubble-RfBtt3o(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPoint, long, long, float, float, float, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+  public static final void InfoBubbleCustom-1hIXUjU(com.mapconductor.compose.MapViewScope, com.mapconductor.core.marker.MarkerState, long, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.info.InfoBubbleEntry {
+  public com.mapconductor.compose.info.InfoBubbleEntry(java.lang.String, kotlin.jvm.functions.Function0, com.mapconductor.core.marker.MarkerIconInterface, long, kotlin.jvm.functions.Function2, int, kotlin.jvm.internal.DefaultConstructorMarker);
+  public final java.lang.String getId();
+  public final kotlin.jvm.functions.Function0<com.mapconductor.core.features.GeoPointInterface> getPositionProvider();
+  public final com.mapconductor.core.marker.MarkerIconInterface getIcon();
+  public final long getTailOffset-F1C5BW0();
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getContent();
+  public com.mapconductor.compose.info.InfoBubbleEntry(java.lang.String, kotlin.jvm.functions.Function0, com.mapconductor.core.marker.MarkerIconInterface, long, kotlin.jvm.functions.Function2, kotlin.jvm.internal.DefaultConstructorMarker);
+}
+public final class com.mapconductor.compose.info.LocalInfoBubbleCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<kotlinx.coroutines.flow.MutableStateFlow<java.util.Map<java.lang.String, com.mapconductor.compose.info.InfoBubbleEntry>>> getLocalInfoBubbleCollector();
+}
+public abstract class com.mapconductor.compose.map.BaseMapViewSaver<T extends com.mapconductor.core.map.MapViewStateInterface<?>> {
+  public com.mapconductor.compose.map.BaseMapViewSaver();
+  protected abstract void saveMapDesign(T, android.os.Bundle);
+  protected abstract T createState(java.lang.String, android.os.Bundle, com.mapconductor.core.map.MapCameraPosition);
+  protected com.mapconductor.core.map.MapPaddingsInterface getCameraPaddings();
+  public final androidx.compose.runtime.saveable.Saver<T, android.os.Bundle> createSaver();
+  protected abstract java.lang.String getStateId(T);
+}
+public final class com.mapconductor.compose.map.CollectAndUpdateEachKt {
+  public static final <T extends com.mapconductor.core.ComponentState, FingerPrint> void CollectAndUpdateEach-NcHsxvU(kotlinx.coroutines.flow.StateFlow<? extends java.util.Map<java.lang.String, T>>, long, kotlin.jvm.functions.Function1<? super T, ? extends kotlinx.coroutines.flow.Flow<? extends FingerPrint>>, kotlin.jvm.functions.Function2<? super T, ? super kotlin.coroutines.Continuation<? super kotlin.Unit>, ? extends java.lang.Object>, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.map.MapAttributionOverlayKt {
+  public static final void MapAttributionOverlay(java.util.List<java.lang.String>, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.map.MapViewBaseKt {
+  public static final <SpecificState extends com.mapconductor.core.map.MapViewStateInterface<?>, SpecificController extends com.mapconductor.core.controller.BaseMapViewController, ActualMapView extends android.view.View, ActualMap, SpecificScope extends com.mapconductor.compose.MapViewScope, SpecificHolder extends com.mapconductor.core.map.MapViewHolderInterface<ActualMapView, ActualMap>> void MapViewBase(SpecificState, androidx.compose.runtime.MutableState<com.mapconductor.core.map.MapCameraPositionInterface>, androidx.compose.ui.Modifier, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, ? extends ActualMapView>, SpecificScope, com.mapconductor.core.map.MapOverlayRegistry, kotlin.jvm.functions.Function1<? super kotlin.coroutines.Continuation<? super java.lang.Boolean>, ? extends java.lang.Object>, kotlin.jvm.functions.Function2<? super ActualMapView, ? super kotlin.coroutines.Continuation<? super SpecificHolder>, ? extends java.lang.Object>, kotlin.jvm.functions.Function2<? super SpecificHolder, ? super kotlin.coroutines.Continuation<? super SpecificController>, ? extends java.lang.Object>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.map.MapViewStateInterface<?>, kotlin.Unit>, kotlin.jvm.functions.Function4<? super com.mapconductor.core.map.InitState, ? super androidx.compose.ui.node.Ref<SpecificHolder>, ? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function3<? super SpecificScope, ? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
+}
+public final class com.mapconductor.compose.marker.LocalMarkerCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.marker.MarkerState>> getLocalMarkerCollector();
+}
+public final class com.mapconductor.compose.marker.MarkerAnimationLayerKt {
+  public static final void MarkerAnimationOverlayLayer(java.util.Collection<com.mapconductor.core.marker.MarkerAnimationOverlayEntry>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.features.GeoPointInterface, androidx.compose.ui.geometry.Offset>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerAnimationOverlayEntry, kotlin.Unit>, androidx.compose.runtime.Composer, int);
+}
+public final class com.mapconductor.compose.marker.MarkerComposeKt {
+  public static final void Marker(com.mapconductor.compose.MapViewScope, com.mapconductor.core.marker.MarkerState, androidx.compose.runtime.Composer, int);
+  public static final void Markers(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.marker.MarkerState>, androidx.compose.runtime.Composer, int);
+  public static final void Marker(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPointInterface, java.lang.String, java.lang.Integer, boolean, boolean, com.mapconductor.core.marker.MarkerIconInterface, com.mapconductor.core.marker.MarkerAnimation, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
+}
+public final class com.mapconductor.compose.polygon.LocalPolygonCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.polygon.PolygonState>> getLocalPolygonCollector();
+}
+public final class com.mapconductor.compose.polygon.PolygonComponentKt {
+  public static final void Polygon(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polygon.PolygonState, androidx.compose.runtime.Composer, int);
+  public static final void Polygon-YoVAMyA(com.mapconductor.compose.MapViewScope, java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>, java.util.List<? extends java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>>, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
+  public static final void Polygon-IvR-a-0(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+}
+public final class com.mapconductor.compose.polyline.LocalPolylineCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.polyline.PolylineState>> getLocalPolylineCollector();
+}
+public final class com.mapconductor.compose.polyline.PolylineComponentKt {
+  public static final void Polyline(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polyline.PolylineState, androidx.compose.runtime.Composer, int);
+  public static final void Polyline-bbrV0mI(com.mapconductor.compose.MapViewScope, java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>, java.lang.String, long, float, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polyline.PolylineEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+  public static final void Polyline-bbrV0mI(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, long, float, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polyline.PolylineEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+}
+public final class com.mapconductor.compose.raster.LocalRasterLayerCollectorKt {
+  public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.raster.RasterLayerState>> getLocalRasterLayerCollector();
+}
+public final class com.mapconductor.compose.raster.RasterLayerComponentKt {
+  public static final void RasterLayer(com.mapconductor.compose.MapViewScope, com.mapconductor.core.raster.RasterLayerState, androidx.compose.runtime.Composer, int);
+  public static final void RasterLayer(com.mapconductor.compose.MapViewScope, com.mapconductor.core.raster.RasterLayerSource, float, boolean, int, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>, androidx.compose.runtime.Composer, int, int);
+}
+public final class com.mapconductor.core.info.InfoWindowOverlayKt {
+  public static final void InfoBubbleOverlay-4rncKtM(long, long, long, long, long, androidx.compose.ui.Modifier, kotlin.jvm.functions.Function2<? super androidx.compose.runtime.Composer, ? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+}
