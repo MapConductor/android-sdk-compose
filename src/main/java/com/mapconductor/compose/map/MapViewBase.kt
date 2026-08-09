@@ -59,6 +59,7 @@ import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
+import com.mapconductor.core.map.ScreenProjectionRequirement
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
@@ -288,7 +289,17 @@ fun <
                             MarkerAnimationOverlayLayer(
                                 entries = markerAnimations.values,
                                 resolveScreenOffset = { position ->
-                                    holderRef.value?.toScreenOffset(position)
+                                    // 同期投影を持たないプロバイダではアニメーションを出せない。
+                                    if (ScreenProjectionRequirement.check(
+                                            registry = state.serviceRegistry,
+                                            provider = state::class.java.simpleName,
+                                            feature = "marker animation overlay",
+                                        )
+                                    ) {
+                                        holderRef.value?.toScreenOffset(position)
+                                    } else {
+                                        null
+                                    }
                                 },
                                 onFinished = { entry ->
                                     scope.markerAnimationFlow.update { it - entry.id }
@@ -321,10 +332,19 @@ fun <
                                     .fillMaxSize()
                                     .clipToBounds(),
                         ) {
+                            // 同期投影を持たないプロバイダでは InfoBubble が出せない。
+                            // null からは「画面外」と区別できないので、宣言を見て
+                            // 1 回だけ理由を報告する。
+                            val canProject =
+                                ScreenProjectionRequirement.check(
+                                    registry = state.serviceRegistry,
+                                    provider = state::class.java.simpleName,
+                                    feature = "InfoBubble",
+                                )
                             bubbles.forEach { mapEntry ->
                                 val entry = mapEntry.value
                                 val position = entry.positionProvider()
-                                val posOffset = holderRef.value?.toScreenOffset(position)
+                                val posOffset = if (canProject) holderRef.value?.toScreenOffset(position) else null
                                 if (posOffset != null) {
                                     // Keep a stable key per entry id; avoid using Flow as a key.
                                     key(entry.id) {
