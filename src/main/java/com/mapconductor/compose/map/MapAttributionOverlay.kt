@@ -37,7 +37,9 @@ internal fun MapAttributionOverlay(attributions: List<String>) {
             modifier =
                 Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 4.dp, bottom = 24.dp)
+                    // 下辺は地図にぴったり付ける。浮かせると「地図の外の帯」に見えてしまい、
+                    // どの地図に対する出典なのかが伝わりにくい。3 プラットフォームとも同じ。
+                    .padding(end = 4.dp)
                     .fillMaxWidth(0.95f)
                     .wrapContentHeight(),
         )
