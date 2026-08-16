@@ -1,4 +1,5 @@
 [versions]
+composeLibs = "1.7.8"
 agp = "9.2.1"
 kotlin = "2.0.21"
 
@@ -16,11 +17,11 @@ coreKtx = "1.16.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 # Jetpack Compose (with BOM)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
-androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
-androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "composeLibs" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "composeLibs" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composeLibs" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "composeLibs" }
+androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "composeLibs" }
 
 # Coroutines
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
