@@ -100,7 +100,8 @@ version = libraryVersion
 val libraryName = "MapConductor Compose"
 val libraryDescription = "Jetpack Compose for MapConductor"
 
-val javadocJar by tasks.registering(Jar::class) {
+// Gradle 9.6 で `by tasks.registering` は非推奨（スクリプトコンパイルエラーになる）。
+val javadocJar = tasks.register<Jar>("javadocJar") {
     archiveClassifier.set("javadoc")
     // Since Android libraries don't have Javadoc task by default, create empty jar
 }

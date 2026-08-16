@@ -13,6 +13,7 @@ espressoCore = "3.7.0"
 coreKtx = "1.16.0"
 
 [libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 # Jetpack Compose (with BOM)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
