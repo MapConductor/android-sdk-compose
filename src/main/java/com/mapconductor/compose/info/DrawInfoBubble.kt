@@ -21,6 +21,7 @@ internal fun DrawInfoBubble(
     modifier: Modifier,
     bubbleColor: Color,
     borderColor: Color,
+    borderWidth: Dp,
     contentPadding: Dp,
     cornerRadius: Dp,
     tailSize: Dp,
@@ -91,7 +92,7 @@ internal fun DrawInfoBubble(
                 }
 
             drawPath(path, color = bubbleColor, style = Fill)
-            drawPath(path, color = borderColor, style = Stroke(width = 2f))
+            drawPath(path, color = borderColor, style = Stroke(width = borderWidth.toPx()))
         }
         // 内容
         Box(

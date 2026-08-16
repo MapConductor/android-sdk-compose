@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,8 +38,15 @@ internal fun MapAttributionOverlay(attributions: List<String>) {
             modifier =
                 Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 4.dp, bottom = 24.dp)
-                    .fillMaxWidth(0.95f)
+                    // 下辺は地図にぴったり付ける。浮かせると「地図の外の帯」に見えてしまい、
+                    // どの地図に対する出典なのかが伝わりにくい。3 プラットフォームとも同じ。
+                    .padding(end = 4.dp)
+                    // 帯は**文字の幅**にする。`fillMaxWidth(0.95f)` だと文字の長さに関係なく
+                    // 常に幅 95% の帯になり、左端だけ中途半端に空いた「地図の外の帯」に見える。
+                    // 上限だけ 98% に抑えて、長い出典は折り返させる。
+                    // iOS（背景を Text にだけ付ける）/ react（maxWidth）と同じ見え方になる。
+                    .fillMaxWidth(0.98f)
+                    .wrapContentWidth(Alignment.End)
                     .wrapContentHeight(),
         )
     }
