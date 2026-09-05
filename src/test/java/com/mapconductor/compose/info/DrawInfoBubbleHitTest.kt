@@ -46,16 +46,16 @@ class DrawInfoBubbleHitTest {
         assertFalse("右下の角", inside(width, height))
     }
 
-    /** しっぽ自体は吹き出しの一部。先端に向かって細くなる。 */
+    /**
+     * しっぽ自体も外側。
+     *
+     * 既定 8dp の三角形なので、外して困るのは先端を狙って叩いた場合だけで、
+     * そのとき起きるのは下の地図が反応することにすぎない。
+     */
     @Test
-    fun theTailItselfIsInside() {
-        assertTrue("しっぽの中心", inside(width / 2f, bodyBottom + tail / 2f))
-        assertTrue("先端", inside(width / 2f, height))
-        // 付け根で幅 tail、そこから頂点へ線形に閉じる。bodyBottom から 2px 下
-        // では半幅 3px なので、3 は内側で 4 は外側。
-        assertTrue("しっぽの内側", inside(width / 2f - 3f, bodyBottom + 2f))
-        assertFalse("同じ高さで少し外", inside(width / 2f - 4f, bodyBottom + 2f))
-        assertFalse("先端の高さでは幅がない", inside(width / 2f + 2f, height))
+    fun theTailIsOutside() {
+        assertFalse("しっぽの中心", inside(width / 2f, bodyBottom + tail / 2f))
+        assertFalse("先端", inside(width / 2f, height))
     }
 
     @Test

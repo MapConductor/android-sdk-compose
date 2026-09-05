@@ -143,22 +143,23 @@ internal fun DrawInfoBubble(
 }
 
 /**
- * 吹き出しの内側か。判定は描画形状（本体＋しっぽの三角）に合わせる。
+ * 吹き出しの本体の内側か。
  *
  * Box はしっぽを含む外接矩形なので、しっぽの左右の角は箱の中だが吹き出しでは
  * ない。そこまで吹き出し扱いにすると、地図が見えている場所を叩いても何も起き
- * ない。角の丸めは無視している。既定 4dp に対してしっぽ脇は幅の半分×8dp あり、
- * 除きたかったのはそちらで、丸めの差は 1 桁小さい。
+ * ない。
+ *
+ * しっぽ自体も外している。既定 8dp の三角形で、外して困るのは先端を狙って
+ * 叩いた場合だけ。そのとき起きるのは下の地図が反応することで、狙っていた
+ * ものが動かないのとは違う。角の丸めも同じ理由で無視している。
  */
 internal fun isInsideBubble(
     point: Offset,
     height: Float,
     width: Float,
     tailPx: Float,
-): Boolean {
-    if (point.x < 0f || point.x > width || point.y < 0f || point.y > height) return false
-    val bodyBottom = height - tailPx
-    if (point.y <= bodyBottom) return true
-    // しっぽは (w/2, height) を頂点に、bodyBottom で幅 tailPx まで開く三角形。
-    return kotlin.math.abs(point.x - width / 2f) <= (height - point.y) / 2f
-}
+): Boolean =
+    point.x >= 0f &&
+        point.x <= width &&
+        point.y >= 0f &&
+        point.y <= height - tailPx
