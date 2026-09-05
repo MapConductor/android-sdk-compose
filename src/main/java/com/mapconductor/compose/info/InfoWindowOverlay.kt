@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -46,24 +45,6 @@ internal fun InfoBubbleOverlay(
                     infoWndSize = it.size
                 }.offset {
                     IntOffset(x.toInt(), y.toInt())
-                }.pointerInput(Unit) {
-                    // 吹き出しの上のタップを地図へ落とさない。
-                    //
-                    // 地図は下に敷かれた AndroidView で、誰も消費しなかった
-                    // イベントはそこへ届く。吹き出しの余白を叩くと地図のタップ
-                    // として扱われ、別のマーカーが選ばれたり吹き出しが閉じたり
-                    // する。「当たったが誰も使わなかった」と「当たらなかった」
-                    // は別なので、前者はここで止める。
-                    //
-                    // 消費は Main パスで行う。Compose は Main を子から親へ配る
-                    // ため、ここへ来た時点で中身のボタンやリンクは既に自分の分
-                    // を受け取っている。Initial パスで消費すると、それらが動か
-                    // なくなる。
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitPointerEvent().changes.forEach { it.consume() }
-                        }
-                    }
                 },
     ) {
         content()
