@@ -57,6 +57,7 @@ import com.mapconductor.core.map.MapCameraPosition
 import com.mapconductor.core.map.MapCameraPositionInterface
 import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
+import com.mapconductor.core.map.MapPaddings
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.ScreenProjectionRequirement
