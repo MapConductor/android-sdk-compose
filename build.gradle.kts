@@ -62,6 +62,9 @@ kotlin {
                 project.property("jvmTarget").toString(),
             ),
         )
+        // ドライバー実装点（@InternalMapConductorApi）を使うためのオプトイン。
+        // この層はオーバーレイ収集の配線そのものなので、モジュール単位で許可する。
+        optIn.add("com.mapconductor.core.InternalMapConductorApi")
     }
 }
 
