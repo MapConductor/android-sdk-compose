@@ -5,26 +5,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.mapconductor.compose.info.InfoBubbleEntry
 import com.mapconductor.core.OverlayCollector
-import com.mapconductor.core.circle.CircleFingerPrint
 import com.mapconductor.core.circle.CircleOverlay
 import com.mapconductor.core.circle.CircleState
 import com.mapconductor.core.controller.MapViewControllerInterface
-import com.mapconductor.core.groundimage.GroundImageFingerPrint
 import com.mapconductor.core.groundimage.GroundImageOverlay
 import com.mapconductor.core.groundimage.GroundImageState
 import com.mapconductor.core.map.MapOverlayInterface
 import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.marker.MarkerAnimationOverlayEntry
-import com.mapconductor.core.marker.MarkerFingerPrint
 import com.mapconductor.core.marker.MarkerOverlay
 import com.mapconductor.core.marker.MarkerState
-import com.mapconductor.core.polygon.PolygonFingerPrint
 import com.mapconductor.core.polygon.PolygonOverlay
 import com.mapconductor.core.polygon.PolygonState
-import com.mapconductor.core.polyline.PolylineFingerPrint
 import com.mapconductor.core.polyline.PolylineOverlay
 import com.mapconductor.core.polyline.PolylineState
-import com.mapconductor.core.raster.RasterLayerFingerPrint
 import com.mapconductor.core.raster.RasterLayerOverlay
 import com.mapconductor.core.raster.RasterLayerState
 import com.mapconductor.settings.Settings
@@ -33,8 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 open class MapViewScope {
     val markerCollector =
-        OverlayCollector<MarkerState, MarkerFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<MarkerState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val bubbleFlow = MutableStateFlow<MutableMap<String, InfoBubbleEntry>>(mutableMapOf())
@@ -42,28 +35,23 @@ open class MapViewScope {
     /** Active screen-space marker animations, keyed by marker id. */
     val markerAnimationFlow = MutableStateFlow<Map<String, MarkerAnimationOverlayEntry>>(emptyMap())
     val polylineCollector =
-        OverlayCollector<PolylineState, PolylineFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<PolylineState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val circleCollector =
-        OverlayCollector<CircleState, CircleFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<CircleState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val polygonCollector =
-        OverlayCollector<PolygonState, PolygonFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<PolygonState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val groundImageCollector =
-        OverlayCollector<GroundImageState, GroundImageFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<GroundImageState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
     val rasterLayerCollector =
-        OverlayCollector<RasterLayerState, RasterLayerFingerPrint>(
-            fingerPrintOf = { it.fingerPrint() },
+        OverlayCollector<RasterLayerState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
 

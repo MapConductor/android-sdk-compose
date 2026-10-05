@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 
 @Composable
@@ -27,7 +28,37 @@ internal fun DrawInfoBubble(
     tailSize: Dp,
     content: @Composable () -> Unit,
 ) {
-    Box(modifier = modifier.wrapContentSize()) {
+    Box(
+        modifier =
+            modifier
+                .wrapContentSize()
+                .pointerInput(tailSize) {
+                    // 吹き出しの上のタップを地図へ落とさない。
+                    //
+                    // 地図は下に敷かれた AndroidView で、誰も消費しなかった
+                    // イベントはそこへ届く。吹き出しの余白を叩くと地図のタップ
+                    // として扱われ、下にいたマーカーが選ばれたり吹き出しが閉じ
+                    // たりする。「当たったが誰も使わなかった」と「当たらなかっ
+                    // た」は別なので、前者をここで止める。
+                    //
+                    // 消費は Main パスで行う。Compose は Main を子から親へ配る
+                    // ため、ここへ来た時点で中身のボタンや clickable は既に自分
+                    // の分を受け取っている。Initial パスで消費すると、それらが
+                    // 動かなくなる。
+                    val tailPx = tailSize.toPx()
+                    val boxHeight = size.height.toFloat()
+                    val boxWidth = size.width.toFloat()
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent().changes.forEach { change ->
+                                if (isInsideBubble(change.position, boxHeight, boxWidth, tailPx)) {
+                                    change.consume()
+                                }
+                            }
+                        }
+                    }
+                },
+    ) {
         Canvas(modifier = Modifier.matchParentSize()) {
             val width = size.width
             val height = size.height
@@ -110,3 +141,25 @@ internal fun DrawInfoBubble(
         }
     }
 }
+
+/**
+ * 吹き出しの本体の内側か。
+ *
+ * Box はしっぽを含む外接矩形なので、しっぽの左右の角は箱の中だが吹き出しでは
+ * ない。そこまで吹き出し扱いにすると、地図が見えている場所を叩いても何も起き
+ * ない。
+ *
+ * しっぽ自体も外している。既定 8dp の三角形で、外して困るのは先端を狙って
+ * 叩いた場合だけ。そのとき起きるのは下の地図が反応することで、狙っていた
+ * ものが動かないのとは違う。角の丸めも同じ理由で無視している。
+ */
+internal fun isInsideBubble(
+    point: Offset,
+    height: Float,
+    width: Float,
+    tailPx: Float,
+): Boolean =
+    point.x >= 0f &&
+        point.x <= width &&
+        point.y >= 0f &&
+        point.y <= height - tailPx

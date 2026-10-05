@@ -57,11 +57,13 @@ import com.mapconductor.core.map.MapCameraPosition
 import com.mapconductor.core.map.MapCameraPositionInterface
 import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
+import com.mapconductor.core.map.MapPaddings
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.ScreenProjectionRequirement
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
+import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
 import com.mapconductor.core.polyline.PolylineCapableInterface
@@ -120,7 +122,10 @@ fun <
     // 登録側は各プロバイダ（コントローラ生成時）。content の合成より前に登録される必要があり、
     // `MarkerClusterGroup` は登録が無ければその場で return するため、ここで put はしない。
     DisposableEffect(state) {
-        onDispose { state.serviceRegistry.remove(MarkerRenderingSupportKey) }
+        onDispose {
+            state.serviceRegistry.remove(MarkerRenderingSupportKey)
+            state.serviceRegistry.remove(VectorStyleSupportKey)
+        }
     }
 
     controller?.also {
