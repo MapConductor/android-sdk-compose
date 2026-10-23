@@ -43,6 +43,7 @@ import com.mapconductor.compose.marker.MarkerAnimationOverlayLayer
 import com.mapconductor.compose.polygon.LocalPolygonCollector
 import com.mapconductor.compose.polyline.LocalPolylineCollector
 import com.mapconductor.compose.raster.LocalRasterLayerCollector
+import com.mapconductor.core.InternalMapConductorApi
 import com.mapconductor.core.OnMapLoadedHandler
 import com.mapconductor.core.ResourceProvider
 import com.mapconductor.core.circle.CircleCapableInterface
@@ -64,6 +65,7 @@ import com.mapconductor.core.map.ScreenProjectionRequirement
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
 import com.mapconductor.core.map.VectorStyleSupportKey
+import com.mapconductor.core.marker.MarkerIconExtent
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
 import com.mapconductor.core.polyline.PolylineCapableInterface
@@ -77,6 +79,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
+@OptIn(InternalMapConductorApi::class)
 @Composable
 fun <
     SpecificState : MapViewStateInterface<*>,
@@ -360,7 +363,11 @@ fun <
                                         if (icon != null) {
                                             val px =
                                                 ResourceProvider.dpToPx(icon.iconSize.value) * icon.scale
-                                            resolvedIconSize = Size(px.toFloat(), px.toFloat())
+                                            // anchor / infoAnchor はアイコンの実寸に対する割合（既定アイコンは
+                                            // ラベルの分だけピン本体より広いことがある）。
+                                            val extent = MarkerIconExtent.ratio(icon)
+                                            resolvedIconSize =
+                                                Size(px.toFloat() * extent.width, px.toFloat() * extent.height)
                                             iconOffset = icon.anchor
                                             infoAnchorOffset = icon.infoAnchor
                                         } else {
