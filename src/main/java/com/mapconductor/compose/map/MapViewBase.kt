@@ -61,10 +61,12 @@ import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapPaddings
 import com.mapconductor.core.map.MapViewHolderInterface
 import com.mapconductor.core.map.MapViewStateInterface
+import com.mapconductor.core.map.MapViewStyle
+import com.mapconductor.core.map.MapViewStyleEffect
 import com.mapconductor.core.map.ScreenProjectionRequirement
+import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
-import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.marker.MarkerIconExtent
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
@@ -105,6 +107,8 @@ fun <
     controllerProvider: suspend (holder: SpecificHolder) -> SpecificController,
     onMapLoaded: OnMapLoadedHandler? = null,
     customDisposableEffect: (@Composable (InitState, Ref<SpecificHolder>) -> Unit)? = null,
+    style: MapViewStyle? = null,
+    onStyleDiagnostics: ((List<String>) -> Unit)? = null,
     content: (@Composable SpecificScope.() -> Unit)? = null,
 ) {
     ResourceProvider.init(LocalContext.current)
@@ -130,6 +134,16 @@ fun <
             state.serviceRegistry.remove(VectorStyleSupportKey)
         }
     }
+
+    // How the map looks, as a property of the map. One call, every provider:
+    // what a style does to this particular backend is decided by what the
+    // backend registered it can do, not here. See `MapViewStyleEffect`.
+    MapViewStyleEffect(
+        state = state,
+        style = style,
+        controller = controller,
+        onDiagnostics = onStyleDiagnostics,
+    )
 
     controller?.also {
         controller.setMapInitializedListener {
