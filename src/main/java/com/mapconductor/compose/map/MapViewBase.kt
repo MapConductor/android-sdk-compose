@@ -67,7 +67,6 @@ import com.mapconductor.core.map.ScreenProjectionRequirement
 import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
-import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.marker.MarkerIconExtent
 import com.mapconductor.core.marker.MarkerRenderingSupportKey
 import com.mapconductor.core.polygon.PolygonCapableInterface
