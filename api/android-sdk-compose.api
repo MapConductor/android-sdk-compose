@@ -23,6 +23,7 @@ public final class com.mapconductor.compose.circle.LocalCircleCollectorKt {
 public final class com.mapconductor.compose.groundimage.GroundImageComponentKt {
   public static final void GroundImage(com.mapconductor.compose.MapViewScope, com.mapconductor.core.groundimage.GroundImageState, androidx.compose.runtime.Composer, int);
   public static final void GroundImage(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, android.graphics.drawable.Drawable, float, int, java.lang.String, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.groundimage.GroundImageEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
+  public static final void GroundImage(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, float, int, java.lang.String, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.groundimage.GroundImageEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
 }
 public final class com.mapconductor.compose.groundimage.LocalGroundImageCollectorKt {
   public static final androidx.compose.runtime.ProvidableCompositionLocal<com.mapconductor.core.OverlayCollectorInterface<com.mapconductor.core.groundimage.GroundImageState>> getLocalGroundImageCollector();
