@@ -29,7 +29,7 @@ fun MapViewScope.GroundImage(state: GroundImageState) {
 fun MapViewScope.GroundImage(
     bounds: GeoRectBounds,
     image: Drawable,
-    opacity: Float = 0.5f,
+    opacity: Float = 1.0f,
     tileSize: Int = GroundImageTileProvider.DEFAULT_TILE_SIZE,
     id: String? = null,
     extra: Serializable? = null,
@@ -56,7 +56,7 @@ fun MapViewScope.GroundImage(
 fun MapViewScope.GroundImage(
     bounds: GeoRectBounds,
     imageUrl: String,
-    opacity: Float = 0.5f,
+    opacity: Float = 1.0f,
     tileSize: Int = GroundImageTileProvider.DEFAULT_TILE_SIZE,
     id: String? = null,
     extra: Serializable? = null,

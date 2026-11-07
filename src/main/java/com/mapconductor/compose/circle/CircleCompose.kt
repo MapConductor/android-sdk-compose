@@ -34,7 +34,7 @@ fun MapViewScope.Circle(
     geodesic: Boolean = true,
     clickable: Boolean = true,
     strokeColor: Color = Color.Red,
-    strokeWidth: Dp = 2.dp,
+    strokeWidth: Dp = 1.dp,
     fillColor: Color = Color.White.copy(alpha = 0.5f),
     zIndex: Int? = null,
     extra: Serializable? = null,
