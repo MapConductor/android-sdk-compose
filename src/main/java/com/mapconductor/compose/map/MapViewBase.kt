@@ -16,6 +16,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -109,6 +110,17 @@ fun <
     customDisposableEffect: (@Composable (InitState, Ref<SpecificHolder>) -> Unit)? = null,
     style: MapViewStyle? = null,
     onStyleDiagnostics: ((List<String>) -> Unit)? = null,
+    /**
+     * Releases the SDK's map view after the map has left the composition.
+     *
+     * Called once, on the main thread, after the controller has been destroyed
+     * and the view has been taken out of its parent. Every provider has to pass
+     * this: a map view nobody destroys keeps its render thread (and through its
+     * listeners the controller with every overlay) alive until the process runs
+     * out of memory. It runs for a configuration change too -- the old Activity's
+     * view is never shown again; what survives a rotation is the state.
+     */
+    onDestroyMapView: ((ActualMapView) -> Unit)? = null,
     content: (@Composable SpecificScope.() -> Unit)? = null,
 ) {
     ResourceProvider.init(LocalContext.current)
@@ -450,14 +462,93 @@ fun <
     LaunchedEffect(state.uiSettings, initState) {
         controllerRef.value?.applyUISettings(state.uiSettings)
     }
+    val currentOnDestroyMapView by rememberUpdatedState(onDestroyMapView)
     DisposableEffect(Unit) {
-        // Setup logic when the composable enters the screen
-
         onDispose {
+            // Overlays first, while the map they live on is still alive.
             controllerRef.value?.destroy()
+            controllerRef.value = null
+            holderRef.value = null
+            val mapView = mapViewRef.value ?: return@onDispose
+            mapViewRef.value = null
+            destroyMapView(
+                mapView = mapView,
+                provider = state::class.java.simpleName,
+                onDestroyMapView = currentOnDestroyMapView,
+            )
         }
     }
     customDisposableEffect?.invoke(initState, holderRef)
+}
+
+/**
+ * The signature before `onDestroyMapView`, kept so code compiled against it
+ * still links. It cannot release the map view; see the overload above.
+ */
+@Deprecated("Pass onDestroyMapView so the map view is released", level = DeprecationLevel.HIDDEN)
+@Composable
+fun <
+    SpecificState : MapViewStateInterface<*>,
+    SpecificController : BaseMapViewController,
+    ActualMapView : View,
+    ActualMap : Any,
+    SpecificScope : MapViewScope,
+    SpecificHolder : MapViewHolderInterface<ActualMapView, ActualMap>,
+> MapViewBase(
+    state: SpecificState,
+    cameraState: MutableState<MapCameraPositionInterface?>,
+    modifier: Modifier = Modifier,
+    viewProvider: @Composable () -> ActualMapView,
+    scope: SpecificScope,
+    registry: MapOverlayRegistry,
+    sdkInitialize: suspend () -> Boolean = { true },
+    holderProvider: suspend (mapView: ActualMapView) -> SpecificHolder,
+    controllerProvider: suspend (holder: SpecificHolder) -> SpecificController,
+    onMapLoaded: OnMapLoadedHandler? = null,
+    customDisposableEffect: (@Composable (InitState, Ref<SpecificHolder>) -> Unit)? = null,
+    style: MapViewStyle? = null,
+    onStyleDiagnostics: ((List<String>) -> Unit)? = null,
+    content: (@Composable SpecificScope.() -> Unit)? = null,
+) = MapViewBase(
+    state = state,
+    cameraState = cameraState,
+    modifier = modifier,
+    viewProvider = viewProvider,
+    scope = scope,
+    registry = registry,
+    sdkInitialize = sdkInitialize,
+    holderProvider = holderProvider,
+    controllerProvider = controllerProvider,
+    onMapLoaded = onMapLoaded,
+    customDisposableEffect = customDisposableEffect,
+    style = style,
+    onStyleDiagnostics = onStyleDiagnostics,
+    onDestroyMapView = null,
+    content = content,
+)
+
+private fun <ActualMapView : View> destroyMapView(
+    mapView: ActualMapView,
+    provider: String,
+    onDestroyMapView: ((ActualMapView) -> Unit)?,
+) {
+    if (onDestroyMapView == null) {
+        // Not passing it compiles and the map still draws; only the memory goes.
+        Log.w(
+            "MapConductor",
+            "$provider does not release its map view (MapViewBase onDestroyMapView is null); " +
+                "the old map view and its controller stay in memory",
+        )
+        return
+    }
+    // Detach before destroying, so the view's surface goes away while the SDK
+    // renderer is still there to handle it.
+    (mapView.parent as? ViewGroup)?.removeView(mapView)
+    try {
+        onDestroyMapView(mapView)
+    } catch (e: Exception) {
+        Log.w("MapConductor", "$provider: releasing the map view failed", e)
+    }
 }
 
 @Composable
