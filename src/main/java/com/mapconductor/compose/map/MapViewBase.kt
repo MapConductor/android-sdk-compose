@@ -61,6 +61,7 @@ import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapPaddings
 import com.mapconductor.core.map.MapViewHolderInterface
+import com.mapconductor.core.map.MapViewState
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.MapViewStyle
 import com.mapconductor.core.map.MapViewStyleEffect
@@ -466,7 +467,13 @@ fun <
     DisposableEffect(Unit) {
         onDispose {
             // Overlays first, while the map they live on is still alive.
-            controllerRef.value?.destroy()
+            controllerRef.value?.let { controller ->
+                controller.destroy()
+                // The state outlives the map (apps keep it, e.g. one per provider
+                // while switching); without this it holds the destroyed controller
+                // and with it every overlay of the old map.
+                (state as? MapViewState<*>)?.detachController(controller)
+            }
             controllerRef.value = null
             holderRef.value = null
             val mapView = mapViewRef.value ?: return@onDispose
@@ -480,52 +487,6 @@ fun <
     }
     customDisposableEffect?.invoke(initState, holderRef)
 }
-
-/**
- * The signature before `onDestroyMapView`, kept so code compiled against it
- * still links. It cannot release the map view; see the overload above.
- */
-@Deprecated("Pass onDestroyMapView so the map view is released", level = DeprecationLevel.HIDDEN)
-@Composable
-fun <
-    SpecificState : MapViewStateInterface<*>,
-    SpecificController : BaseMapViewController,
-    ActualMapView : View,
-    ActualMap : Any,
-    SpecificScope : MapViewScope,
-    SpecificHolder : MapViewHolderInterface<ActualMapView, ActualMap>,
-> MapViewBase(
-    state: SpecificState,
-    cameraState: MutableState<MapCameraPositionInterface?>,
-    modifier: Modifier = Modifier,
-    viewProvider: @Composable () -> ActualMapView,
-    scope: SpecificScope,
-    registry: MapOverlayRegistry,
-    sdkInitialize: suspend () -> Boolean = { true },
-    holderProvider: suspend (mapView: ActualMapView) -> SpecificHolder,
-    controllerProvider: suspend (holder: SpecificHolder) -> SpecificController,
-    onMapLoaded: OnMapLoadedHandler? = null,
-    customDisposableEffect: (@Composable (InitState, Ref<SpecificHolder>) -> Unit)? = null,
-    style: MapViewStyle? = null,
-    onStyleDiagnostics: ((List<String>) -> Unit)? = null,
-    content: (@Composable SpecificScope.() -> Unit)? = null,
-) = MapViewBase(
-    state = state,
-    cameraState = cameraState,
-    modifier = modifier,
-    viewProvider = viewProvider,
-    scope = scope,
-    registry = registry,
-    sdkInitialize = sdkInitialize,
-    holderProvider = holderProvider,
-    controllerProvider = controllerProvider,
-    onMapLoaded = onMapLoaded,
-    customDisposableEffect = customDisposableEffect,
-    style = style,
-    onStyleDiagnostics = onStyleDiagnostics,
-    onDestroyMapView = null,
-    content = content,
-)
 
 private fun <ActualMapView : View> destroyMapView(
     mapView: ActualMapView,
