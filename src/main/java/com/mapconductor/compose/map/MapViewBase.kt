@@ -66,6 +66,7 @@ import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.MapViewStyle
 import com.mapconductor.core.map.MapViewStyleEffect
 import com.mapconductor.core.map.ScreenProjectionRequirement
+import com.mapconductor.core.map.VectorStyleMutationSupportKey
 import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
@@ -127,6 +128,7 @@ fun <
     ResourceProvider.init(LocalContext.current)
     val mapViewRef = remember { Ref<ActualMapView>() }
     val controllerRef = remember { Ref<SpecificController>() }
+    val controllerStateRef = remember { Ref<SpecificState>() }
     val holderRef = remember { Ref<SpecificHolder>() }
     var initState by remember { mutableStateOf<InitState>(InitState.NotStarted) }
     val bubbles by scope.bubbleFlow.collectAsState()
@@ -145,6 +147,9 @@ fun <
         onDispose {
             state.serviceRegistry.remove(MarkerRenderingSupportKey)
             state.serviceRegistry.remove(VectorStyleSupportKey)
+            // Mapbox / MapLibre register a store whose callback holds the map's
+            // holder and controller; left here it keeps the whole old map.
+            state.serviceRegistry.remove(VectorStyleMutationSupportKey)
         }
     }
 
@@ -454,6 +459,11 @@ fun <
         mapViewRef.value?.let { mapView ->
             val holder = holderProvider(mapView)
             holderRef.value = holder
+            // The provider attaches the controller to the state it was composed
+            // with now, which need not be the one this effect first saw: an app
+            // can hand the same MapViewBase another state (the example does, for
+            // a frame, between ArcGIS 3D and 2D).
+            controllerStateRef.value = state
             controllerRef.value = controllerProvider(holder)
             initState = InitState.MapCreating
         }
@@ -464,6 +474,7 @@ fun <
         controllerRef.value?.applyUISettings(state.uiSettings)
     }
     val currentOnDestroyMapView by rememberUpdatedState(onDestroyMapView)
+    val currentState by rememberUpdatedState(state)
     DisposableEffect(Unit) {
         onDispose {
             // Overlays first, while the map they live on is still alive.
@@ -471,9 +482,13 @@ fun <
                 controller.destroy()
                 // The state outlives the map (apps keep it, e.g. one per provider
                 // while switching); without this it holds the destroyed controller
-                // and with it every overlay of the old map.
-                (state as? MapViewState<*>)?.detachController(controller)
+                // and with it every overlay of the old map. Each state lets go only
+                // if this controller is the one attached to it.
+                setOf(controllerStateRef.value, currentState, state).forEach {
+                    (it as? MapViewState<*>)?.detachController(controller)
+                }
             }
+            controllerStateRef.value = null
             controllerRef.value = null
             holderRef.value = null
             val mapView = mapViewRef.value ?: return@onDispose
