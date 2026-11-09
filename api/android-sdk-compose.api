@@ -84,6 +84,7 @@ public final class com.mapconductor.compose.polygon.LocalPolygonCollectorKt {
 }
 public final class com.mapconductor.compose.polygon.PolygonComponentKt {
   public static final void Polygon(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polygon.PolygonState, androidx.compose.runtime.Composer, int);
+  public static final void Polygons(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.polygon.PolygonState>, androidx.compose.runtime.Composer, int);
   public static final void Polygon-YoVAMyA(com.mapconductor.compose.MapViewScope, java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>, java.util.List<? extends java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>>, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
   public static final void Polygon-IvR-a-0(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
 }
