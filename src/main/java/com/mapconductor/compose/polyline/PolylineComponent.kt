@@ -3,6 +3,9 @@ package com.mapconductor.compose.polyline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -12,7 +15,11 @@ import com.mapconductor.core.features.GeoPointInterface
 import com.mapconductor.core.features.GeoRectBounds
 import com.mapconductor.core.polyline.OnPolylineEventHandler
 import com.mapconductor.core.polyline.PolylineState
+import com.mapconductor.core.polyline.PolylineTilingOptions
 import java.io.Serializable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 
 @Composable
 fun MapViewScope.Polyline(state: PolylineState) {
@@ -25,6 +32,69 @@ fun MapViewScope.Polyline(state: PolylineState) {
         onDispose {
             collector.remove(state.id)
         }
+    }
+}
+
+/**
+ * Efficiently add many polylines without creating one Composable per polyline.
+ *
+ * The same shape as [com.mapconductor.compose.polygon.Polygons] and
+ * [com.mapconductor.compose.marker.Markers]: one effect diffs the list against
+ * the ids this call added last time and publishes the result in a single
+ * collector update. Several Polylines()/Polyline() can share one map.
+ */
+@Composable
+fun MapViewScope.Polylines(states: List<PolylineState>) {
+    val collector = LocalPolylineCollector.current
+    val prevIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    LaunchedEffect(states) {
+        withContext(Dispatchers.Default) {
+            val prevIds = prevIdsState.value
+            val nextIds = states.asSequence().map { it.id }.toSet()
+            val removedIds = prevIds - nextIds
+            prevIdsState.value = nextIds
+            // Merge only the ids this Polylines() owns, so several
+            // Polylines()/Polyline() can share one map's collector.
+            collector.flow.update { current ->
+                val next = current.toMutableMap()
+                for (id in removedIds) next.remove(id)
+                for (state in states) next[state.id] = state
+                next
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            // Remove only the polylines this Polylines() owns on dispose.
+            val ownIds = prevIdsState.value
+            if (ownIds.isNotEmpty()) {
+                collector.flow.update { current ->
+                    val next = current.toMutableMap()
+                    for (id in ownIds) next.remove(id)
+                    next
+                }
+            }
+            prevIdsState.value = emptySet()
+        }
+    }
+}
+
+/**
+ * How this map draws many polylines: as raster tiles once there are enough
+ * of them ([PolylineTilingOptions.Default]), never ([PolylineTilingOptions.Disabled]),
+ * or at other thresholds. Without it the map uses [PolylineTilingOptions.Default].
+ *
+ * Read when the polylines are handed to the map, so put it in the map's
+ * content before them; a change takes effect the next time they are handed
+ * over (recreate the map to apply it to an unchanged list).
+ */
+@Composable
+fun MapViewScope.PolylineTiling(options: PolylineTilingOptions) {
+    val scope = this
+    SideEffect {
+        scope.polylineTilingOptions.value = options
     }
 }
 
