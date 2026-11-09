@@ -37,9 +37,21 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      # core と同時に出した変更（同じ名前のブランチ）は、その core と組む。
+      # 既定ブランチの core では、まだ入っていない API を使う PR が必ず落ちる。
+      # core に同じ名前のブランチが無ければ、これまでどおり既定ブランチを使う。
       - name: Build core locally
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          git clone --depth 1 https://github.com/MapConductor/android-sdk-core.git _core
+          CORE=https://github.com/MapConductor/android-sdk-core.git
+          if [ -n "$HEAD_REF" ] && git ls-remote --exit-code --heads "$CORE" "$HEAD_REF" > /dev/null; then
+            echo "core: $HEAD_REF"
+            git clone --depth 1 --branch "$HEAD_REF" "$CORE" _core
+          else
+            echo "core: default branch"
+            git clone --depth 1 "$CORE" _core
+          fi
           cd _core
           ./gradlew --no-daemon publishToMavenLocal
           cd ..

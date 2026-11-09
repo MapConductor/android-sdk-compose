@@ -16,6 +16,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -60,10 +61,12 @@ import com.mapconductor.core.map.MapDesignTypeInterface
 import com.mapconductor.core.map.MapOverlayRegistry
 import com.mapconductor.core.map.MapPaddings
 import com.mapconductor.core.map.MapViewHolderInterface
+import com.mapconductor.core.map.MapViewState
 import com.mapconductor.core.map.MapViewStateInterface
 import com.mapconductor.core.map.MapViewStyle
 import com.mapconductor.core.map.MapViewStyleEffect
 import com.mapconductor.core.map.ScreenProjectionRequirement
+import com.mapconductor.core.map.VectorStyleMutationSupportKey
 import com.mapconductor.core.map.VectorStyleSupportKey
 import com.mapconductor.core.map.resolveMapAttributions
 import com.mapconductor.core.marker.MarkerCapableInterface
@@ -109,11 +112,23 @@ fun <
     customDisposableEffect: (@Composable (InitState, Ref<SpecificHolder>) -> Unit)? = null,
     style: MapViewStyle? = null,
     onStyleDiagnostics: ((List<String>) -> Unit)? = null,
+    /**
+     * Releases the SDK's map view after the map has left the composition.
+     *
+     * Called once, on the main thread, after the controller has been destroyed
+     * and the view has been taken out of its parent. Every provider has to pass
+     * this: a map view nobody destroys keeps its render thread (and through its
+     * listeners the controller with every overlay) alive until the process runs
+     * out of memory. It runs for a configuration change too -- the old Activity's
+     * view is never shown again; what survives a rotation is the state.
+     */
+    onDestroyMapView: ((ActualMapView) -> Unit)? = null,
     content: (@Composable SpecificScope.() -> Unit)? = null,
 ) {
     ResourceProvider.init(LocalContext.current)
     val mapViewRef = remember { Ref<ActualMapView>() }
     val controllerRef = remember { Ref<SpecificController>() }
+    val controllerStateRef = remember { Ref<SpecificState>() }
     val holderRef = remember { Ref<SpecificHolder>() }
     var initState by remember { mutableStateOf<InitState>(InitState.NotStarted) }
     val bubbles by scope.bubbleFlow.collectAsState()
@@ -132,6 +147,9 @@ fun <
         onDispose {
             state.serviceRegistry.remove(MarkerRenderingSupportKey)
             state.serviceRegistry.remove(VectorStyleSupportKey)
+            // Mapbox / MapLibre register a store whose callback holds the map's
+            // holder and controller; left here it keeps the whole old map.
+            state.serviceRegistry.remove(VectorStyleMutationSupportKey)
         }
     }
 
@@ -441,6 +459,11 @@ fun <
         mapViewRef.value?.let { mapView ->
             val holder = holderProvider(mapView)
             holderRef.value = holder
+            // The provider attaches the controller to the state it was composed
+            // with now, which need not be the one this effect first saw: an app
+            // can hand the same MapViewBase another state (the example does, for
+            // a frame, between ArcGIS 3D and 2D).
+            controllerStateRef.value = state
             controllerRef.value = controllerProvider(holder)
             initState = InitState.MapCreating
         }
@@ -450,14 +473,58 @@ fun <
     LaunchedEffect(state.uiSettings, initState) {
         controllerRef.value?.applyUISettings(state.uiSettings)
     }
+    val currentOnDestroyMapView by rememberUpdatedState(onDestroyMapView)
+    val currentState by rememberUpdatedState(state)
     DisposableEffect(Unit) {
-        // Setup logic when the composable enters the screen
-
         onDispose {
-            controllerRef.value?.destroy()
+            // Overlays first, while the map they live on is still alive.
+            controllerRef.value?.let { controller ->
+                controller.destroy()
+                // The state outlives the map (apps keep it, e.g. one per provider
+                // while switching); without this it holds the destroyed controller
+                // and with it every overlay of the old map. Each state lets go only
+                // if this controller is the one attached to it.
+                setOf(controllerStateRef.value, currentState, state).forEach {
+                    (it as? MapViewState<*>)?.detachController(controller)
+                }
+            }
+            controllerStateRef.value = null
+            controllerRef.value = null
+            holderRef.value = null
+            val mapView = mapViewRef.value ?: return@onDispose
+            mapViewRef.value = null
+            destroyMapView(
+                mapView = mapView,
+                provider = state::class.java.simpleName,
+                onDestroyMapView = currentOnDestroyMapView,
+            )
         }
     }
     customDisposableEffect?.invoke(initState, holderRef)
+}
+
+private fun <ActualMapView : View> destroyMapView(
+    mapView: ActualMapView,
+    provider: String,
+    onDestroyMapView: ((ActualMapView) -> Unit)?,
+) {
+    if (onDestroyMapView == null) {
+        // Not passing it compiles and the map still draws; only the memory goes.
+        Log.w(
+            "MapConductor",
+            "$provider does not release its map view (MapViewBase onDestroyMapView is null); " +
+                "the old map view and its controller stay in memory",
+        )
+        return
+    }
+    // Detach before destroying, so the view's surface goes away while the SDK
+    // renderer is still there to handle it.
+    (mapView.parent as? ViewGroup)?.removeView(mapView)
+    try {
+        onDestroyMapView(mapView)
+    } catch (e: Exception) {
+        Log.w("MapConductor", "$provider: releasing the map view failed", e)
+    }
 }
 
 @Composable
