@@ -19,6 +19,7 @@ import com.mapconductor.core.polygon.PolygonOverlay
 import com.mapconductor.core.polygon.PolygonState
 import com.mapconductor.core.polyline.PolylineOverlay
 import com.mapconductor.core.polyline.PolylineState
+import com.mapconductor.core.polyline.PolylineTilingOptions
 import com.mapconductor.core.raster.RasterLayerOverlay
 import com.mapconductor.core.raster.RasterLayerState
 import com.mapconductor.settings.Settings
@@ -38,6 +39,12 @@ open class MapViewScope {
         OverlayCollector<PolylineState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
+
+    /**
+     * This map's polyline tiling, set by [com.mapconductor.compose.polyline.PolylineTiling];
+     * null keeps the provider's default ([PolylineTilingOptions.Default]).
+     */
+    val polylineTilingOptions = MutableStateFlow<PolylineTilingOptions?>(null)
     val circleCollector =
         OverlayCollector<CircleState>(
             updateDebounce = Settings.Default.composeEventDebounce,
@@ -59,7 +66,7 @@ open class MapViewScope {
         val registry = MapOverlayRegistry()
         registry.register(MarkerOverlay(markerCollector.flow))
         registry.register(CircleOverlay(circleCollector.flow))
-        registry.register(PolylineOverlay(polylineCollector.flow))
+        registry.register(PolylineOverlay(polylineCollector.flow, polylineTilingOptions))
         registry.register(PolygonOverlay(polygonCollector.flow))
         registry.register(GroundImageOverlay(groundImageCollector.flow))
         registry.register(RasterLayerOverlay(rasterLayerCollector.flow))
