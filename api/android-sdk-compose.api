@@ -6,6 +6,7 @@ public class com.mapconductor.compose.MapViewScope {
   public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.polyline.PolylineState> getPolylineCollector();
   public final kotlinx.coroutines.flow.MutableStateFlow<com.mapconductor.core.polyline.PolylineTilingOptions> getPolylineTilingOptions();
   public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.circle.CircleState> getCircleCollector();
+  public final kotlinx.coroutines.flow.MutableStateFlow<com.mapconductor.core.circle.CircleTilingOptions> getCircleTilingOptions();
   public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.polygon.PolygonState> getPolygonCollector();
   public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.groundimage.GroundImageState> getGroundImageCollector();
   public final com.mapconductor.core.OverlayCollector<com.mapconductor.core.raster.RasterLayerState> getRasterLayerCollector();
@@ -16,6 +17,8 @@ public final class com.mapconductor.compose.OverlayProviderKt {
 }
 public final class com.mapconductor.compose.circle.CircleComposeKt {
   public static final void Circle(com.mapconductor.compose.MapViewScope, com.mapconductor.core.circle.CircleState, androidx.compose.runtime.Composer, int);
+  public static final void Circles(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.circle.CircleState>, androidx.compose.runtime.Composer, int);
+  public static final void CircleTiling(com.mapconductor.compose.MapViewScope, com.mapconductor.core.circle.CircleTilingOptions, androidx.compose.runtime.Composer, int);
   public static final void Circle-6pqZqJ8(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPointInterface, double, java.lang.String, boolean, boolean, long, float, long, java.lang.Integer, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.circle.CircleEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
 }
 public final class com.mapconductor.compose.circle.LocalCircleCollectorKt {
