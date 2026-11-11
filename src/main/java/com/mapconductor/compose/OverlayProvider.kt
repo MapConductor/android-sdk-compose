@@ -7,6 +7,7 @@ import com.mapconductor.compose.info.InfoBubbleEntry
 import com.mapconductor.core.OverlayCollector
 import com.mapconductor.core.circle.CircleOverlay
 import com.mapconductor.core.circle.CircleState
+import com.mapconductor.core.circle.CircleTilingOptions
 import com.mapconductor.core.controller.MapViewControllerInterface
 import com.mapconductor.core.groundimage.GroundImageOverlay
 import com.mapconductor.core.groundimage.GroundImageState
@@ -49,6 +50,12 @@ open class MapViewScope {
         OverlayCollector<CircleState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
+
+    /**
+     * This map's circle tiling, set by [com.mapconductor.compose.circle.CircleTiling];
+     * null keeps the provider's default ([CircleTilingOptions.Default]).
+     */
+    val circleTilingOptions = MutableStateFlow<CircleTilingOptions?>(null)
     val polygonCollector =
         OverlayCollector<PolygonState>(
             updateDebounce = Settings.Default.composeEventDebounce,
@@ -65,7 +72,7 @@ open class MapViewScope {
     fun buildRegistry(): MapOverlayRegistry {
         val registry = MapOverlayRegistry()
         registry.register(MarkerOverlay(markerCollector.flow))
-        registry.register(CircleOverlay(circleCollector.flow))
+        registry.register(CircleOverlay(circleCollector.flow, circleTilingOptions))
         registry.register(PolylineOverlay(polylineCollector.flow, polylineTilingOptions))
         registry.register(PolygonOverlay(polygonCollector.flow))
         registry.register(GroundImageOverlay(groundImageCollector.flow))
