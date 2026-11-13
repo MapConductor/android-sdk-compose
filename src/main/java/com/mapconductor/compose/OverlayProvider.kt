@@ -7,6 +7,7 @@ import com.mapconductor.compose.info.InfoBubbleEntry
 import com.mapconductor.core.OverlayCollector
 import com.mapconductor.core.circle.CircleOverlay
 import com.mapconductor.core.circle.CircleState
+import com.mapconductor.core.circle.CircleTilingOptions
 import com.mapconductor.core.controller.MapViewControllerInterface
 import com.mapconductor.core.groundimage.GroundImageOverlay
 import com.mapconductor.core.groundimage.GroundImageState
@@ -19,6 +20,7 @@ import com.mapconductor.core.polygon.PolygonOverlay
 import com.mapconductor.core.polygon.PolygonState
 import com.mapconductor.core.polyline.PolylineOverlay
 import com.mapconductor.core.polyline.PolylineState
+import com.mapconductor.core.polyline.PolylineTilingOptions
 import com.mapconductor.core.raster.RasterLayerOverlay
 import com.mapconductor.core.raster.RasterLayerState
 import com.mapconductor.settings.Settings
@@ -38,10 +40,22 @@ open class MapViewScope {
         OverlayCollector<PolylineState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
+
+    /**
+     * This map's polyline tiling, set by [com.mapconductor.compose.polyline.PolylineTiling];
+     * null keeps the provider's default ([PolylineTilingOptions.Default]).
+     */
+    val polylineTilingOptions = MutableStateFlow<PolylineTilingOptions?>(null)
     val circleCollector =
         OverlayCollector<CircleState>(
             updateDebounce = Settings.Default.composeEventDebounce,
         )
+
+    /**
+     * This map's circle tiling, set by [com.mapconductor.compose.circle.CircleTiling];
+     * null keeps the provider's default ([CircleTilingOptions.Default]).
+     */
+    val circleTilingOptions = MutableStateFlow<CircleTilingOptions?>(null)
     val polygonCollector =
         OverlayCollector<PolygonState>(
             updateDebounce = Settings.Default.composeEventDebounce,
@@ -58,8 +72,8 @@ open class MapViewScope {
     fun buildRegistry(): MapOverlayRegistry {
         val registry = MapOverlayRegistry()
         registry.register(MarkerOverlay(markerCollector.flow))
-        registry.register(CircleOverlay(circleCollector.flow))
-        registry.register(PolylineOverlay(polylineCollector.flow))
+        registry.register(CircleOverlay(circleCollector.flow, circleTilingOptions))
+        registry.register(PolylineOverlay(polylineCollector.flow, polylineTilingOptions))
         registry.register(PolygonOverlay(polygonCollector.flow))
         registry.register(GroundImageOverlay(groundImageCollector.flow))
         registry.register(RasterLayerOverlay(rasterLayerCollector.flow))

@@ -48,6 +48,12 @@ android {
         compose = true
     }
 
+    testOptions {
+        // JVM 単体テストで Compose ランタイムを回すと android.os.Trace を呼ぶ。
+        // スタブの既定値（何もしない）で通す。InfoBubbleRegistrationTest を参照。
+        unitTests.isReturnDefaultValues = true
+    }
+
     publishing {
         singleVariant("release") {
             withSourcesJar()
@@ -88,6 +94,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

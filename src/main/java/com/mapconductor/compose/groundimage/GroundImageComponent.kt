@@ -29,7 +29,7 @@ fun MapViewScope.GroundImage(state: GroundImageState) {
 fun MapViewScope.GroundImage(
     bounds: GeoRectBounds,
     image: Drawable,
-    opacity: Float = 0.5f,
+    opacity: Float = 1.0f,
     tileSize: Int = GroundImageTileProvider.DEFAULT_TILE_SIZE,
     id: String? = null,
     extra: Serializable? = null,
@@ -39,6 +39,33 @@ fun MapViewScope.GroundImage(
         GroundImageState(
             bounds = bounds,
             image = image,
+            opacity = opacity,
+            tileSize = tileSize,
+            id = id,
+            extra = extra,
+            onClick = onClick,
+        )
+    GroundImage(state)
+}
+
+/**
+ * [imageUrl]（http / https / file / data）の画像を貼る。SDK が読み、読み終えるまでは透明。
+ * http(s) にはアプリの `android.permission.INTERNET` が要る。
+ */
+@Composable
+fun MapViewScope.GroundImage(
+    bounds: GeoRectBounds,
+    imageUrl: String,
+    opacity: Float = 1.0f,
+    tileSize: Int = GroundImageTileProvider.DEFAULT_TILE_SIZE,
+    id: String? = null,
+    extra: Serializable? = null,
+    onClick: OnGroundImageEventHandler? = null,
+) {
+    val state =
+        GroundImageState(
+            bounds = bounds,
+            imageUrl = imageUrl,
             opacity = opacity,
             tileSize = tileSize,
             id = id,
