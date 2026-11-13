@@ -17,7 +17,7 @@ public final class com.mapconductor.compose.OverlayProviderKt {
 }
 public final class com.mapconductor.compose.circle.CircleComposeKt {
   public static final void Circle(com.mapconductor.compose.MapViewScope, com.mapconductor.core.circle.CircleState, androidx.compose.runtime.Composer, int);
-  public static final void Circles(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.circle.CircleState>, androidx.compose.runtime.Composer, int);
+  public static final void Circles(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.circle.CircleState>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function2<? super java.lang.Integer, ? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
   public static final void CircleTiling(com.mapconductor.compose.MapViewScope, com.mapconductor.core.circle.CircleTilingOptions, androidx.compose.runtime.Composer, int);
   public static final void Circle-6pqZqJ8(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPointInterface, double, java.lang.String, boolean, boolean, long, float, long, java.lang.Integer, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.circle.CircleEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
 }
@@ -80,7 +80,7 @@ public final class com.mapconductor.compose.marker.MarkerAnimationLayerKt {
 }
 public final class com.mapconductor.compose.marker.MarkerComposeKt {
   public static final void Marker(com.mapconductor.compose.MapViewScope, com.mapconductor.core.marker.MarkerState, androidx.compose.runtime.Composer, int);
-  public static final void Markers(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.marker.MarkerState>, androidx.compose.runtime.Composer, int);
+  public static final void Markers(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.marker.MarkerState>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function2<? super java.lang.Integer, ? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
   public static final void Marker(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoPointInterface, java.lang.String, java.lang.Integer, boolean, boolean, com.mapconductor.core.marker.MarkerIconInterface, com.mapconductor.core.marker.MarkerAnimation, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, kotlin.jvm.functions.Function1<? super com.mapconductor.core.marker.MarkerState, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
 }
 public final class com.mapconductor.compose.polygon.LocalPolygonCollectorKt {
@@ -88,7 +88,7 @@ public final class com.mapconductor.compose.polygon.LocalPolygonCollectorKt {
 }
 public final class com.mapconductor.compose.polygon.PolygonComponentKt {
   public static final void Polygon(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polygon.PolygonState, androidx.compose.runtime.Composer, int);
-  public static final void Polygons(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.polygon.PolygonState>, androidx.compose.runtime.Composer, int);
+  public static final void Polygons(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.polygon.PolygonState>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function2<? super java.lang.Integer, ? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
   public static final void Polygon-YoVAMyA(com.mapconductor.compose.MapViewScope, java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>, java.util.List<? extends java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>>, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int, int);
   public static final void Polygon-IvR-a-0(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, long, float, long, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polygon.PolygonEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
 }
@@ -97,7 +97,7 @@ public final class com.mapconductor.compose.polyline.LocalPolylineCollectorKt {
 }
 public final class com.mapconductor.compose.polyline.PolylineComponentKt {
   public static final void Polyline(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polyline.PolylineState, androidx.compose.runtime.Composer, int);
-  public static final void Polylines(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.polyline.PolylineState>, androidx.compose.runtime.Composer, int);
+  public static final void Polylines(com.mapconductor.compose.MapViewScope, java.util.List<com.mapconductor.core.polyline.PolylineState>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function2<? super java.lang.Integer, ? super java.lang.Integer, kotlin.Unit>, kotlin.jvm.functions.Function1<? super java.lang.Integer, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
   public static final void PolylineTiling(com.mapconductor.compose.MapViewScope, com.mapconductor.core.polyline.PolylineTilingOptions, androidx.compose.runtime.Composer, int);
   public static final void Polyline-bbrV0mI(com.mapconductor.compose.MapViewScope, java.util.List<? extends com.mapconductor.core.features.GeoPointInterface>, java.lang.String, long, float, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polyline.PolylineEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
   public static final void Polyline-bbrV0mI(com.mapconductor.compose.MapViewScope, com.mapconductor.core.features.GeoRectBounds, java.lang.String, long, float, boolean, int, java.io.Serializable, kotlin.jvm.functions.Function1<? super com.mapconductor.core.polyline.PolylineEvent, kotlin.Unit>, androidx.compose.runtime.Composer, int, int);
