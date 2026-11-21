@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mapconductor.compose.MapViewScope
 import com.mapconductor.core.circle.CircleState
+import com.mapconductor.core.OverlayStateList
 import com.mapconductor.core.copyOverlayStates
 import com.mapconductor.core.overlayStateIds
 import com.mapconductor.core.circle.CircleTilingOptions
@@ -63,6 +64,8 @@ fun MapViewScope.Circles(
 ) {
     val collector = LocalCircleCollector.current
     val prevIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
+    // The membership this Circles() last published as its own list, while it is still the published one.
+    val ownList = remember { arrayOfNulls<OverlayStateList<CircleState>>(1) }
     val progress = rememberAddProgress(onAddStart, onAddProgress, onAddEnd)
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
@@ -76,14 +79,25 @@ fun MapViewScope.Circles(
         // Before the hand-over, so that no arrival comes ahead of it.
         progress.track(states, nextIds, added)
         withContext(Dispatchers.Default) {
-            // Merge only the ids this Circles() owns, so several
-            // Circles()/Circle() can share one map's collector.
+            // While this Circles() is the only writer -- the published membership
+            // is still the list it published last, or there is nothing yet -- its
+            // list is handed over as it is. Building a map of hundreds of
+            // thousands of circles took seconds per hand-over, and so did walking it.
+            val handOver = if (nextIds.size == states.size) OverlayStateList(states.toList()) else null
             collector.flow.update { current ->
-                val next = copyOverlayStates(current)
-                for (id in prevIds) if (id !in nextIds) next.remove(id)
-                for (state in states) next[state.id] = state
-                next
+                val alone = current === ownList[0] || (current.isEmpty() && prevIds.isEmpty())
+                if (handOver != null && alone) {
+                    handOver
+                } else {
+                    // Merge only the ids this Circles() owns, so several
+                    // Circles()/Circle() can share one map's collector.
+                    val next = copyOverlayStates(current)
+                    for (id in prevIds) if (id !in nextIds) next.remove(id)
+                    for (state in states) next[state.id] = state
+                    next
+                }
             }
+            ownList[0] = handOver?.takeIf { collector.flow.value === it }
         }
     }
 
@@ -93,11 +107,16 @@ fun MapViewScope.Circles(
             val ownIds = prevIdsState.value
             if (ownIds.isNotEmpty()) {
                 collector.flow.update { current ->
-                    val next = copyOverlayStates(current)
-                    for (id in ownIds) next.remove(id)
-                    next
+                    if (current === ownList[0]) {
+                        mutableMapOf()
+                    } else {
+                        val next = copyOverlayStates(current)
+                        for (id in ownIds) next.remove(id)
+                        next
+                    }
                 }
             }
+            ownList[0] = null
             prevIdsState.value = emptySet()
         }
     }
