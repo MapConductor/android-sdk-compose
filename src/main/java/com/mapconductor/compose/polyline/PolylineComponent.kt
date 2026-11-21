@@ -1,5 +1,6 @@
 package com.mapconductor.compose.polyline
 
+import com.mapconductor.compose.listVersions
 import com.mapconductor.compose.LocalOverlayTileActivity
 import com.mapconductor.core.controller.OverlayKind
 import com.mapconductor.compose.rememberAddProgress
@@ -71,23 +72,26 @@ fun MapViewScope.Polylines(
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
     LaunchedEffect(states) {
-        val prevIds = prevIdsState.value
-        val (nextIds, added) =
+        // Again after each add to a mutableStateListOf: see listVersions.
+        listVersions(states).collect { list ->
+            val prevIds = prevIdsState.value
+            val (nextIds, added) =
+                withContext(Dispatchers.Default) {
+                    list.asSequence().map { it.id }.toSet() to progress.newStates(list, prevIds, tracking)
+                }
+            prevIdsState.value = nextIds
+            // Before the hand-over, so that no arrival comes ahead of it.
+            progress.track(list, nextIds, added)
             withContext(Dispatchers.Default) {
-                states.asSequence().map { it.id }.toSet() to progress.newStates(states, prevIds, tracking)
-            }
-        prevIdsState.value = nextIds
-        // Before the hand-over, so that no arrival comes ahead of it.
-        progress.track(states, nextIds, added)
-        withContext(Dispatchers.Default) {
-            val removedIds = prevIds - nextIds
-            // Merge only the ids this Polylines() owns, so several
-            // Polylines()/Polyline() can share one map's collector.
-            collector.flow.update { current ->
-                val next = current.toMutableMap()
-                for (id in removedIds) next.remove(id)
-                for (state in states) next[state.id] = state
-                next
+                val removedIds = prevIds - nextIds
+                // Merge only the ids this Polylines() owns, so several
+                // Polylines()/Polyline() can share one map's collector.
+                collector.flow.update { current ->
+                    val next = current.toMutableMap()
+                    for (id in removedIds) next.remove(id)
+                    for (state in list) next[state.id] = state
+                    next
+                }
             }
         }
     }

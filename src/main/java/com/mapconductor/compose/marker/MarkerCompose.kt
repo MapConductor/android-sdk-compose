@@ -1,5 +1,6 @@
 package com.mapconductor.compose.marker
 
+import com.mapconductor.compose.listVersions
 import com.mapconductor.compose.rememberAddProgress
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -62,35 +63,38 @@ fun MapViewScope.Markers(
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
     LaunchedEffect(states) {
-        val startedAt = SystemClock.elapsedRealtime()
-        markerTrace("collector effect start count=${states.size}")
-        val prevIds = prevIdsState.value
-        val (nextIds, added) =
+        // Again after each add to a mutableStateListOf: see listVersions.
+        listVersions(states).collect { list ->
+            val startedAt = SystemClock.elapsedRealtime()
+            markerTrace("collector effect start count=${list.size}")
+            val prevIds = prevIdsState.value
+            val (nextIds, added) =
+                withContext(Dispatchers.Default) {
+                    list.asSequence().map { it.id }.toSet() to progress.newStates(list, prevIds, tracking)
+                }
+            markerTrace("collector ids created count=${nextIds.size}")
+            prevIdsState.value = nextIds
+            // Before the hand-over, so that no arrival comes ahead of it.
+            progress.track(list, nextIds, added)
+            // For very large marker sets, avoid per-marker SharedFlow emits which can backpressure and
+            // block rendering; instead publish the whole map in one StateFlow update.
             withContext(Dispatchers.Default) {
-                states.asSequence().map { it.id }.toSet() to progress.newStates(states, prevIds, tracking)
+                val removedIds = prevIds - nextIds
+                // Merge only the ids this Markers() owns into the shared collector so
+                // several Markers()/Marker() can share one map without clobbering each
+                // other. Assigning the whole map (a full replace) dropped everyone
+                // else's markers, so the last Markers() to run won and erased the rest.
+                collector.flow.update { current ->
+                    val next = current.toMutableMap()
+                    for (id in removedIds) next.remove(id)
+                    for (state in list) next[state.id] = state
+                    next
+                }
+                markerTrace(
+                    "collector flow assigned count=${list.size} " +
+                        "elapsedMs=${SystemClock.elapsedRealtime() - startedAt}",
+                )
             }
-        markerTrace("collector ids created count=${nextIds.size}")
-        prevIdsState.value = nextIds
-        // Before the hand-over, so that no arrival comes ahead of it.
-        progress.track(states, nextIds, added)
-        // For very large marker sets, avoid per-marker SharedFlow emits which can backpressure and
-        // block rendering; instead publish the whole map in one StateFlow update.
-        withContext(Dispatchers.Default) {
-            val removedIds = prevIds - nextIds
-            // Merge only the ids this Markers() owns into the shared collector so
-            // several Markers()/Marker() can share one map without clobbering each
-            // other. Assigning the whole map (a full replace) dropped everyone
-            // else's markers, so the last Markers() to run won and erased the rest.
-            collector.flow.update { current ->
-                val next = current.toMutableMap()
-                for (id in removedIds) next.remove(id)
-                for (state in states) next[state.id] = state
-                next
-            }
-            markerTrace(
-                "collector flow assigned count=${states.size} " +
-                    "elapsedMs=${SystemClock.elapsedRealtime() - startedAt}",
-            )
         }
     }
 

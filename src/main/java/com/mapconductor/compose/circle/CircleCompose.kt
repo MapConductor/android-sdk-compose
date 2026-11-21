@@ -1,5 +1,6 @@
 package com.mapconductor.compose.circle
 
+import com.mapconductor.compose.listVersions
 import com.mapconductor.compose.LocalOverlayTileActivity
 import com.mapconductor.core.controller.OverlayKind
 import com.mapconductor.compose.rememberAddProgress
@@ -74,34 +75,37 @@ fun MapViewScope.Circles(
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
     LaunchedEffect(states) {
-        val prevIds = prevIdsState.value
-        val (nextIds, added) =
-            withContext(Dispatchers.Default) {
-                overlayStateIds(states) to progress.newStates(states, prevIds, tracking)
-            }
-        prevIdsState.value = nextIds
-        // Before the hand-over, so that no arrival comes ahead of it.
-        progress.track(states, nextIds, added)
-        withContext(Dispatchers.Default) {
-            // While this Circles() is the only writer -- the published membership
-            // is still the list it published last, or there is nothing yet -- its
-            // list is handed over as it is. Building a map of hundreds of
-            // thousands of circles took seconds per hand-over, and so did walking it.
-            val handOver = if (nextIds.size == states.size) OverlayStateList(states.toList()) else null
-            collector.flow.update { current ->
-                val alone = current === ownList[0] || (current.isEmpty() && prevIds.isEmpty())
-                if (handOver != null && alone) {
-                    handOver
-                } else {
-                    // Merge only the ids this Circles() owns, so several
-                    // Circles()/Circle() can share one map's collector.
-                    val next = copyOverlayStates(current)
-                    for (id in prevIds) if (id !in nextIds) next.remove(id)
-                    for (state in states) next[state.id] = state
-                    next
+        // Again after each add to a mutableStateListOf: see listVersions.
+        listVersions(states).collect { list ->
+            val prevIds = prevIdsState.value
+            val (nextIds, added) =
+                withContext(Dispatchers.Default) {
+                    overlayStateIds(list) to progress.newStates(list, prevIds, tracking)
                 }
+            prevIdsState.value = nextIds
+            // Before the hand-over, so that no arrival comes ahead of it.
+            progress.track(list, nextIds, added)
+            withContext(Dispatchers.Default) {
+                // While this Circles() is the only writer -- the published membership
+                // is still the list it published last, or there is nothing yet -- its
+                // list is handed over as it is. Building a map of hundreds of
+                // thousands of circles took seconds per hand-over, and so did walking it.
+                val handOver = if (nextIds.size == list.size) OverlayStateList(list.toList()) else null
+                collector.flow.update { current ->
+                    val alone = current === ownList[0] || (current.isEmpty() && prevIds.isEmpty())
+                    if (handOver != null && alone) {
+                        handOver
+                    } else {
+                        // Merge only the ids this Circles() owns, so several
+                        // Circles()/Circle() can share one map's collector.
+                        val next = copyOverlayStates(current)
+                        for (id in prevIds) if (id !in nextIds) next.remove(id)
+                        for (state in list) next[state.id] = state
+                        next
+                    }
+                }
+                ownList[0] = handOver?.takeIf { collector.flow.value === it }
             }
-            ownList[0] = handOver?.takeIf { collector.flow.value === it }
         }
     }
 
