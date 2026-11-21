@@ -1,5 +1,8 @@
 package com.mapconductor.compose.map
 
+import com.mapconductor.core.controller.overlayTileActivity
+import com.mapconductor.core.controller.OverlayKind
+import com.mapconductor.compose.LocalOverlayTileActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -297,6 +300,10 @@ fun <
                 subcompose("slotid") {
                     @Suppress("UNUSED_VARIABLE") // KtLint: backing property rule workaround
                     val localController = controllerRef.value ?: return@subcompose
+                    val tileActivityOf =
+                        remember(localController) {
+                            { kind: OverlayKind -> (localController as? BaseMapViewController)?.overlayTileActivity(kind).orEmpty() }
+                        }
 
                     // 子コンポーネントを収集する
                     // **ここで初めて CompositionLocalProvider を差し込む**
@@ -304,6 +311,7 @@ fun <
                         LocalMapOverlayRegistry provides registry,
                         LocalMapServiceRegistry provides state.serviceRegistry,
                         LocalMapViewController provides localController,
+                        LocalOverlayTileActivity provides tileActivityOf,
                         LocalMarkerCollector provides scope.markerCollector,
                         LocalInfoBubbleCollector provides scope.bubbleFlow,
                         LocalCircleCollector provides scope.circleCollector,

@@ -1,5 +1,7 @@
 package com.mapconductor.compose.polygon
 
+import com.mapconductor.compose.LocalOverlayTileActivity
+import com.mapconductor.core.controller.OverlayKind
 import com.mapconductor.compose.rememberAddProgress
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -64,7 +66,9 @@ fun MapViewScope.Polygons(
 ) {
     val collector = LocalPolygonCollector.current
     val prevIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
-    val progress = rememberAddProgress(onAddStart, onAddProgress, onAddEnd)
+    val activityOf = LocalOverlayTileActivity.current
+    val tileActivity = remember(activityOf) { activityOf(OverlayKind.Polygon) }
+    val progress = rememberAddProgress(onAddStart, onAddProgress, onAddEnd, tileActivity)
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
     LaunchedEffect(states) {

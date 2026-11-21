@@ -11,13 +11,15 @@ import org.junit.Test
 
 /**
  * `Markers` / `Circles` / `Polylines` / `Polygons` の onAddStart / onAddProgress / onAddEnd
- * （AddProgressTracker）。js-sdk-react の `addProgress.test.mjs` と同じ内容。
+ * （AddProgressTracker）。js-sdk-react の `addProgress.test.mjs`、ios-sdk の
+ * `AddProgressTests` と同じ内容。
  *
- * - 地図に未だ無い state を持ち込んだリストで onAddStart(total)。
+ * - リストを渡したら onAddStart(total)。total は地図に未だ無い state の数（削除・更新だけなら 0、空のあとの空は何も呼ばない）。
  * - 各 state の onAdded と同じ時点で 1 つ数える。途中経過は 100 ms に 1 回まで。
- * - 全部載ったら onAddProgress(total, total) と onAddEnd(total)。
+ * - 全部載り、タイルの描画も止まって 400 ms 静かになったら onAddProgress(total, total) と onAddEnd(total)。
+ * - タイルの描画だけ（カメラの移動）は 200 ms 続いたら onAddStart(0)。それより短ければ何も呼ばない。
  * - 載る前に外された state は数から抜ける。新しい追加は数え直し、前のリストの onAddEnd は来ない。
- * - 更新・削除だけのリストは何も呼ばない。他のコレクション・他の地図の state は数えない。
+ * - 他のコレクション・他の地図の state は数えない。
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddProgressTrackerTest {
@@ -40,12 +42,21 @@ class AddProgressTrackerTest {
         prevIds = nextIds
     }
 
+    private fun elapse(ms: Long) {
+        scope.advanceTimeBy(ms)
+        scope.runCurrent()
+    }
+
+    private fun settle() = elapse(AddProgressTracker.SETTLE_MS)
+
     @Test
-    fun `all on the map - start, progress at the total, end`() {
+    fun `all on the map - start, progress at the total, end once quiet`() {
         val states = listOf(circle("a"), circle("b"), circle("c"))
         set(states)
         tracker.arrived(listOf(states[0]))
         tracker.arrived(listOf(states[1], states[2]))
+        assertEquals(listOf("start 3", "progress 1/3"), calls)
+        settle()
         assertEquals(listOf("start 3", "progress 1/3", "progress 3/3", "end 3"), calls)
     }
 
@@ -57,10 +68,10 @@ class AddProgressTrackerTest {
         tracker.arrived(listOf(states[1])) // held
         tracker.arrived(listOf(states[2])) // held
         assertEquals(listOf("start 5", "progress 1/5"), calls)
-        scope.advanceTimeBy(100)
-        scope.runCurrent()
+        elapse(100)
         assertEquals(listOf("start 5", "progress 1/5", "progress 3/5"), calls)
         tracker.arrived(listOf(states[3], states[4]))
+        settle()
         assertEquals("end 5", calls.last())
     }
 
@@ -71,15 +82,17 @@ class AddProgressTrackerTest {
         tracker.arrived(listOf(a))
         set(listOf(a, b))
         tracker.arrived(listOf(b))
+        settle()
         assertEquals(listOf("progress 2/2", "end 2"), calls.takeLast(2))
     }
 
     @Test
-    fun `removing the rest ends at once`() {
+    fun `removing the rest ends once quiet`() {
         val (a, b) = listOf(circle("a"), circle("b"))
         set(listOf(a, b))
         tracker.arrived(listOf(a))
         set(listOf(a))
+        settle()
         assertEquals(listOf("progress 1/1", "end 1"), calls.takeLast(2))
     }
 
@@ -90,6 +103,7 @@ class AddProgressTrackerTest {
         val a2 = circle("a")
         set(listOf(a2))
         tracker.arrived(listOf(a2))
+        settle()
         assertEquals(listOf("start 1", "progress 1/1", "end 1"), calls)
     }
 
@@ -101,17 +115,64 @@ class AddProgressTrackerTest {
         assertEquals(listOf("start 2", "start 1"), calls)
         tracker.arrived(listOf(a, b))
         tracker.arrived(listOf(c))
+        settle()
         assertEquals(listOf("start 2", "start 1", "progress 1/1", "end 1"), calls)
     }
 
     @Test
-    fun `updates, removals and other collections' states call nothing`() {
+    fun `updates and removals start and end with 0, and other collections' states do not count`() {
         val (a, b) = listOf(circle("a"), circle("b"))
         set(listOf(a, b))
         tracker.arrived(listOf(a, b))
+        settle()
         calls.clear()
         set(listOf(circle("a"))) // a updated, b removed
         tracker.arrived(listOf(circle("other"), circle("a")))
+        assertEquals(listOf("start 0"), calls)
+        settle()
+        assertEquals(listOf("start 0", "end 0"), calls)
+    }
+
+    @Test
+    fun `drawing keeps the end waiting until it has been quiet`() {
+        val a = circle("a")
+        set(listOf(a))
+        tracker.arrived(listOf(a))
+        tracker.drawingChanged(true)
+        elapse(2000)
+        assertEquals(listOf("start 1"), calls)
+        tracker.drawingChanged(false)
+        elapse(AddProgressTracker.SETTLE_MS - 1)
+        assertEquals(listOf("start 1"), calls)
+        elapse(1)
+        assertEquals(listOf("start 1", "progress 1/1", "end 1"), calls)
+    }
+
+    @Test
+    fun `drawing alone starts after 200 ms and ends once quiet`() {
+        tracker.drawingChanged(true)
+        elapse(AddProgressTracker.DRAW_START_DELAY_MS - 1)
+        assertEquals(emptyList<String>(), calls)
+        elapse(1)
+        assertEquals(listOf("start 0"), calls)
+        tracker.drawingChanged(false)
+        settle()
+        assertEquals(listOf("start 0", "end 0"), calls)
+    }
+
+    @Test
+    fun `an empty list after nothing calls nothing`() {
+        set(emptyList())
+        settle()
+        assertEquals(emptyList<String>(), calls)
+    }
+
+    @Test
+    fun `brief drawing calls nothing`() {
+        tracker.drawingChanged(true)
+        elapse(AddProgressTracker.DRAW_START_DELAY_MS / 2)
+        tracker.drawingChanged(false)
+        elapse(2000)
         assertEquals(emptyList<String>(), calls)
     }
 }
