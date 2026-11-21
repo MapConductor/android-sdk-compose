@@ -1,5 +1,7 @@
 package com.mapconductor.compose.circle
 
+import com.mapconductor.compose.LocalOverlayTileActivity
+import com.mapconductor.core.controller.OverlayKind
 import com.mapconductor.compose.rememberAddProgress
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -66,7 +68,9 @@ fun MapViewScope.Circles(
     val prevIdsState = remember { mutableStateOf<Set<String>>(emptySet()) }
     // The membership this Circles() last published as its own list, while it is still the published one.
     val ownList = remember { arrayOfNulls<OverlayStateList<CircleState>>(1) }
-    val progress = rememberAddProgress(onAddStart, onAddProgress, onAddEnd)
+    val activityOf = LocalOverlayTileActivity.current
+    val tileActivity = remember(activityOf) { activityOf(OverlayKind.Circle) }
+    val progress = rememberAddProgress(onAddStart, onAddProgress, onAddEnd, tileActivity)
     val tracking = onAddStart != null || onAddProgress != null || onAddEnd != null
 
     LaunchedEffect(states) {
