@@ -53,7 +53,13 @@ internal class AddProgressTracker(
     var onAddProgress: ((added: Int, total: Int) -> Unit)? = null
     var onAddEnd: ((total: Int) -> Unit)? = null
 
-    /** State objects handed over and not on the map yet, by id. */
+    /**
+     * State objects handed over and not on the map yet, by id.
+     *
+     * Replaced, not just emptied, once the last one arrives: a HashMap keeps
+     * its table at the largest size it reached, and for 720k circles that was
+     * an empty 8 MB array held for as long as the collection was shown.
+     */
     private var pending = HashMap<String, ComponentState>()
     private var total = 0
     private var added = 0
@@ -111,9 +117,11 @@ internal class AddProgressTracker(
         if (newStates.isNotEmpty()) {
             timer?.cancel()
             timer = null
-            pending = HashMap<String, ComponentState>((newStates.size / 0.75f).toInt() + 1).apply {
-                for (s in newStates) put(s.id, s)
-            }
+            // Room for every state without a resize at the 0.75 load factor, and no more.
+            pending =
+                HashMap<String, ComponentState>((newStates.size / 0.75f).toInt() + 1).apply {
+                    for (s in newStates) put(s.id, s)
+                }
             total = newStates.size
             added = 0
             lastProgressAt = Long.MIN_VALUE / 2
